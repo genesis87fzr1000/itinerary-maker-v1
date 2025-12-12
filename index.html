@@ -269,4 +269,513 @@
                     <div class="p-5 bg-gradient-to-r from-indigo-700 to-blue-700 text-white text-center relative">
                         <h2 class="text-2xl font-extrabold mb-1">${plan.name}</h2>
                         <p class="text-xs opacity-80">${new Date().toLocaleDateString()} 作成</p>
-                        ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full">このサンプルをあなたの旅プランに作り替えましょう</p>' :
+                        ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full">このサンプルをあなたの旅プランに作り替えましょう</p>' : ''}
+                    </div>
+                    <div class="p-6 space-y-0">`; // space-y-0 to control spacing manually
+
+            let contentHtml = '';
+            plan.stops.forEach((item, i) => {
+                const isFirst = i === 0;
+                const isLast = i === plan.stops.length - 1;
+                
+                if (item.type === 'STOP') {
+                    // STOP ROW
+                    const timeDisp = item.timeStr || '00:00';
+                    const suffix = isFirst ? '集合' : (isLast ? '到着' : (item.stayTime===0 && !item.stayReason ? '出発' : '到着'));
+                    
+                    // Dot Style
+                    const dotContent = item.isBase ? '★' : '●';
+                    const dotClass = item.isBase ? 'border-red-500 text-red-500 font-bold' : 'border-gray-400 text-gray-400';
+
+                    // Main Content
+                    let mainContent = '';
+                    if (isEdit) {
+                        const nameVal = item.name ? item.name : '<span class="text-xs">地点・施設名の入力</span>';
+                        const boxClass = item.name ? 'edit-box filled' : 'edit-box';
+                        mainContent = `<div class="flex gap-1 items-center w-full">
+                            <button onclick="openLocationModal(${i})" class="${boxClass}">${nameVal}</button>
+                            <span class="text-sm font-bold text-gray-700 flex-shrink-0">${suffix}</span>
+                            <div class="flex flex-col ml-1">
+                                <button onclick="moveStop(${i}, -1)" class="text-[10px] bg-gray-100 px-1 hover:bg-gray-200">▲</button>
+                                <button onclick="moveStop(${i}, 1)" class="text-[10px] bg-gray-100 px-1 hover:bg-gray-200">▼</button>
+                            </div>
+                            ${(!isFirst && !isLast) ? `<button onclick="deleteStop(${i})" class="text-red-300 ml-1">×</button>` : ''}
+                        </div>`;
+                    } else {
+                        mainContent = `<div class="font-bold text-gray-800 text-base">${item.name} <span class="text-sm font-bold text-gray-600 ml-1">${suffix}</span></div>`;
+                    }
+
+                    // Row HTML
+                    contentHtml += `
+                    <div class="relative pl-8 pb-3 min-h-[40px]">
+                        <div class="timeline-line"></div>
+                        <div class="timeline-dot ${dotClass}">${dotContent}</div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0 leading-none">${timeDisp}</div>
+                            <div class="flex-grow">${mainContent}</div>
+                        </div>
+                    </div>`;
+
+                    // Stay Info (if strictly staying)
+                    if (!isFirst && !isLast) {
+                        let stayHtml = '';
+                        if (isEdit) {
+                            const reasonVal = item.stayReason ? item.stayReason : '<span class="text-xs">滞在理由を入力</span>';
+                            const reasonClass = item.stayReason ? 'edit-box filled' : 'edit-box';
+                            const timeVal = item.stayTime > 0 ? `${item.stayTime}分` : '時間';
+                            stayHtml = `
+                            <div class="flex gap-2 w-full mt-1">
+                                <button onclick="openStayModal(${i})" class="${reasonClass} flex-1">${reasonVal}</button>
+                                <button onclick="openStayModal(${i})" class="edit-box filled w-16 text-center">${timeVal}</button>
+                                <button onclick="openMemoModal(${i})" class="${item.memo?'edit-box filled':'edit-box'} flex-1 truncate">${item.memo || '<span class="text-xs">メモ入力</span>'}</button>
+                            </div>`;
+                        } else if (item.stayReason || item.stayTime > 0) {
+                            stayHtml = `
+                            <div class="bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-100 mt-1">
+                                <div class="font-bold text-sm text-gray-800">${item.stayReason || '滞在'} <span class="text-xs text-gray-500 ml-2">滞在 ${item.stayTime}分</span></div>
+                                ${item.memo ? `<div class="text-xs text-gray-600 mt-0.5">📝 ${item.memo}</div>` : ''}
+                            </div>`;
+                        }
+
+                        if (stayHtml) {
+                            contentHtml += `
+                            <div class="relative pl-8 pb-3">
+                                <div class="timeline-line"></div>
+                                <div class="flex gap-3">
+                                    <div class="w-10"></div>
+                                    <div class="flex-grow">${stayHtml}</div>
+                                </div>
+                            </div>`;
+                        }
+                        
+                        // Departure Row (Calculated)
+                        if (!isEdit && !isSample) { // 結果画面のみ出発行を表示（編集画面は簡略化）
+                             // 今回の要件では「サンプルと同じ表示」なので、サンプルにある「出発」行も描画が必要
+                             // サンプルデータには「出発」がSTOPとして入っているが、自動計算時は滞在後の出発行を生成する
+                        }
+                        
+                        // サンプルデータ構造に従い、STOPタイプとして「出発」がある場合は上記ループで処理される。
+                        // 滞在後の「出発」行が必要な場合（編集モードでは自動挿入されないため）
+                        // ここではサンプルのデータ構造（出発行が明示的にある）を尊重する。
+                    }
+
+                } else if (item.type === 'MOVE') {
+                    // MOVE ROW
+                    const modeLabels = { 'DRIVING_FREE':'車(無料)', 'DRIVING_TOLL':'車(有料)', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
+                    const modeIcon = { 'DRIVING_FREE':'🚙', 'DRIVING_TOLL':'🏎️', 'WALKING':'🚶', 'BICYCLING':'🚲' };
+                    const mKey = item.mode;
+                    const durationStr = item.duration ? `${item.duration}分` : '00分';
+                    
+                    let moveContent = '';
+                    if (isEdit) {
+                        moveContent = `<button onclick="openTransportModal(${i})" class="edit-box filled w-full text-xs">
+                            ${modeIcon[mKey]} <span class="text-[10px]">移動手段の選択</span>
+                        </button>`;
+                    } else {
+                        // ナビボタン (結果画面のみ)
+                        let navBtn = '';
+                        if (mode === 'RESULT' && plan.stops[i-1] && plan.stops[i+1]) {
+                             const origin = encodeURIComponent(plan.stops[i-1].location);
+                             const dest = encodeURIComponent(plan.stops[i+1].location);
+                             const tmode = (mKey.includes('DRIVING')) ? 'driving' : (mKey==='WALKING'?'walking':'bicycling');
+                             const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${tmode}`;
+                             navBtn = `<a href="${url}" target="_blank" class="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200 no-print">🧭 ナビ</a>`;
+                        }
+                        moveContent = `<div class="text-sm font-bold text-gray-600">${modeLabels[mKey]}移動 <span class="text-xs text-gray-400 ml-1 font-normal">${durationStr}</span> ${navBtn}</div>`;
+                    }
+
+                    contentHtml += `
+                    <div class="relative pl-8 pb-3">
+                        <div class="timeline-line"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10"></div> <div class="flex-grow">${moveContent}</div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            // Footer Buttons
+            let footerHtml = '';
+            if (isSample) {
+                footerHtml = `<div class="mt-8 text-center"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
+            } else if (isEdit) {
+                footerHtml = `
+                <div class="mt-8 space-y-3">
+                    <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
+                    <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
+                </div>`;
+            } else if (mode === 'RESULT') {
+                footerHtml = `
+                <div class="mt-8 flex gap-2 no-print">
+                    <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">修正する</button>
+                    <button onclick="saveCurrentPlan()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl">保存する</button>
+                </div>`;
+            }
+
+            document.getElementById('app-content').innerHTML = headerHtml + contentHtml + footerHtml + `</div></div>`;
+        }
+
+        // --- 3. ロジック ---
+
+        function showSample() {
+            editingPlan = getSampleData();
+            mode = 'SAMPLE';
+            renderTimeline();
+        }
+
+        function copySampleToEdit() {
+            // サンプルデータをコピーして編集モードへ
+            // ただし、ユーザーの要望通り「入力枠」の状態にするため、名前などをクリアする
+            const sample = getSampleData();
+            editingPlan = {
+                id: 'plan_' + Date.now(),
+                name: '新規旅程プラン',
+                baseTime: sample.baseTime,
+                rounding: 0,
+                stops: sample.stops.map(s => {
+                    if (s.type === 'MOVE') return { ...s, duration: 0 };
+                    // STOPの場合、入力待ち状態にする
+                    return { ...s, name:'', location:'', confirmed:false, stayTime: s.stayTime, stayReason: s.stayReason, memo: s.memo, timeStr:'00:00' };
+                })
+            };
+            // 最初の出発地と到着地などを整合させる
+            if(editingPlan.stops[0]) editingPlan.stops[0].stayReason = '集合';
+            
+            mode = 'EDIT';
+            renderTimeline();
+        }
+
+        function startNewEdit() {
+            // サンプルコピーと同じロジックで開始
+            copySampleToEdit();
+        }
+
+        // 編集操作
+        function addNextStop() {
+            editingPlan.stops.push({ type:'MOVE', mode:'DRIVING_FREE', duration:0, dist:0 });
+            editingPlan.stops.push({ type:'STOP', name:'', location:'', confirmed:false, stayTime:20, stayReason:'', memo:'', isBase:false, timeStr:'00:00' });
+            renderTimeline();
+        }
+        function deleteStop(idx) {
+            if(idx===0 || idx===editingPlan.stops.length-1) { alert('出発地と最終地は削除できません'); return; }
+            editingPlan.stops.splice(idx-1, 2); // 前のMoveと自分を削除
+            renderTimeline();
+        }
+        function moveStop(idx, dir) {
+            // Stop-Move-Stop の構造を維持して移動するのは複雑だが、簡易的に Stop+Move のセットを移動
+            // 今回は簡易実装: 配列操作
+            // idx は STOP のインデックス。前後の MOVE との関係性を見る
+            if(idx <= 0 || idx >= editingPlan.stops.length-1) return; // 端は移動不可
+            
+            // 対象: stops[idx] (STOP) と stops[idx-1] (手前のMOVE) をセットで動かす
+            const targetIndex = idx - 1; // MOVEのインデックス
+            
+            if (dir === -1) { // 上へ
+                if (targetIndex <= 0) return;
+                // 前のセット (MOVE+STOP) と交換
+                const moveSelf = editingPlan.stops[targetIndex];
+                const stopSelf = editingPlan.stops[targetIndex+1];
+                const movePrev = editingPlan.stops[targetIndex-2];
+                const stopPrev = editingPlan.stops[targetIndex-1];
+                
+                editingPlan.stops.splice(targetIndex-2, 4, moveSelf, stopSelf, movePrev, stopPrev);
+            } else { // 下へ
+                if (targetIndex >= editingPlan.stops.length - 2) return;
+                const moveSelf = editingPlan.stops[targetIndex];
+                const stopSelf = editingPlan.stops[targetIndex+1];
+                const moveNext = editingPlan.stops[targetIndex+2];
+                const stopNext = editingPlan.stops[targetIndex+3];
+                
+                editingPlan.stops.splice(targetIndex, 4, moveNext, stopNext, moveSelf, stopSelf);
+            }
+            renderTimeline();
+        }
+
+        // モーダル操作
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // 1. Location
+        function openLocationModal(idx) {
+            editingIndex = idx;
+            const item = editingPlan.stops[idx];
+            document.getElementById('input-loc-name').value = item.name;
+            document.getElementById('loc-search-res').textContent = item.confirmed ? `※確定済: ${item.location}` : '※確定を押して住所を確認してください';
+            tempLocationData = item.confirmed ? item.location : null;
+            openModal('modal-location');
+        }
+        function validateLocation() {
+            const val = document.getElementById('input-loc-name').value;
+            if(!val) return;
+            const svc = new google.maps.places.AutocompleteService();
+            svc.getPlacePredictions({ input: val }, (preds, status) => {
+                const el = document.getElementById('loc-search-res');
+                if (status === 'OK' && preds.length > 0) {
+                    tempLocationData = preds[0].description;
+                    el.innerHTML = `<span class="text-green-600">✅ OK: ${tempLocationData}</span>`;
+                } else {
+                    tempLocationData = null;
+                    el.innerHTML = `<span class="text-red-500">❌ 見つかりません</span>`;
+                }
+            });
+        }
+        function saveToDictionary() {
+            const val = document.getElementById('input-loc-name').value;
+            if(val && !savedLocations.includes(val)) {
+                savedLocations.push(val);
+                localStorage.setItem('savedLocations_v2', JSON.stringify(savedLocations));
+                updateDatalist();
+                alert('辞書に保存しました');
+            }
+        }
+        function confirmLocation() {
+            if(!tempLocationData) { alert('確定を行ってください'); return; }
+            const item = editingPlan.stops[editingIndex];
+            item.name = document.getElementById('input-loc-name').value;
+            item.location = tempLocationData;
+            item.confirmed = true;
+            closeModal('modal-location');
+            renderTimeline();
+        }
+
+        // 2. Transport
+        function openTransportModal(idx) {
+            editingIndex = idx;
+            document.getElementById('input-transport').value = editingPlan.stops[idx].mode;
+            openModal('modal-transport');
+        }
+        function confirmTransport() {
+            editingPlan.stops[editingIndex].mode = document.getElementById('input-transport').value;
+            closeModal('modal-transport');
+            renderTimeline();
+        }
+
+        // 3. Stay
+        function openStayModal(idx) {
+            editingIndex = idx;
+            const item = editingPlan.stops[idx];
+            document.getElementById('input-stay-reason').value = item.stayReason;
+            document.getElementById('input-stay-time').value = item.stayTime;
+            document.getElementById('input-is-base').checked = item.isBase;
+            openModal('modal-stay');
+        }
+        function confirmStay() {
+            const item = editingPlan.stops[editingIndex];
+            item.stayReason = document.getElementById('input-stay-reason').value;
+            item.stayTime = parseInt(document.getElementById('input-stay-time').value);
+            if(document.getElementById('input-is-base').checked) {
+                editingPlan.stops.forEach(s => { if(s.type==='STOP') s.isBase = false; }); // Reset others
+                item.isBase = true;
+            } else {
+                item.isBase = false;
+            }
+            closeModal('modal-stay');
+            renderTimeline();
+        }
+
+        // 4. Memo
+        function openMemoModal(idx) {
+            editingIndex = idx;
+            document.getElementById('input-memo').value = editingPlan.stops[idx].memo;
+            openModal('modal-memo');
+        }
+        function confirmMemo() {
+            editingPlan.stops[editingIndex].memo = document.getElementById('input-memo').value;
+            closeModal('modal-memo');
+            renderTimeline();
+        }
+
+        // 5. Finalize
+        function openFinalizeModal() {
+            // Check validation
+            const invalid = editingPlan.stops.filter(s => s.type==='STOP' && !s.confirmed);
+            if(invalid.length > 0) { alert('未確定の地点があります'); return; }
+            const hasBase = editingPlan.stops.some(s => s.type==='STOP' && s.isBase);
+            if(!hasBase) { alert('時間の基点（★）が設定されていません。滞在設定でチェックを入れてください'); return; }
+
+            // Set current time + 1 day
+            const d = new Date(); d.setDate(d.getDate()+1); d.setHours(10,0,0,0);
+            const iso = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            document.getElementById('final-base-time').value = iso;
+            openModal('modal-finalize');
+        }
+
+        async function executeCalculation() {
+            const name = document.getElementById('final-plan-name').value;
+            const baseTime = document.getElementById('final-base-time').value;
+            const rounding = parseInt(document.getElementById('final-rounding').value);
+            
+            editingPlan.name = name;
+            editingPlan.baseTime = baseTime;
+            editingPlan.rounding = rounding;
+            
+            closeModal('modal-finalize');
+            document.getElementById('app-content').innerHTML = '<div class="text-center p-10 py-20 text-gray-500">🚀 ルート計算中...</div>';
+
+            // Google Maps Route Calculation
+            const ds = new google.maps.DirectionsService();
+            for(let i=0; i<editingPlan.stops.length; i++) {
+                const item = editingPlan.stops[i];
+                if (item.type === 'MOVE') {
+                    const start = editingPlan.stops[i-1].location;
+                    const end = editingPlan.stops[i+1].location;
+                    let gMode = 'DRIVING';
+                    let avoidTolls = false;
+                    
+                    if(item.mode === 'DRIVING_FREE') avoidTolls = true;
+                    else if(item.mode === 'DRIVING_TOLL') avoidTolls = false;
+                    else gMode = item.mode;
+
+                    try {
+                        const res = await new Promise(resolve => {
+                            ds.route({ origin: start, destination: end, travelMode: gMode, avoidTolls: avoidTolls }, (r, s) => resolve(s==='OK'?r:null));
+                        });
+                        if (res) {
+                            item.duration = Math.ceil(res.routes[0].legs[0].duration.value / 60);
+                        } else {
+                            item.duration = 0;
+                        }
+                    } catch(e) { item.duration = 0; }
+                }
+            }
+
+            calculateSchedule();
+            mode = 'RESULT';
+            renderTimeline();
+        }
+
+        // 時間計算 (丸め対応)
+        function calculateSchedule() {
+            const stops = editingPlan.stops;
+            const baseIdx = stops.findIndex(s => s.type==='STOP' && s.isBase);
+            const round = editingPlan.rounding;
+            let t = new Date(editingPlan.baseTime);
+
+            const addMin = (d, m) => new Date(d.getTime() + m*60000);
+            const roundUp = (d) => {
+                if(!round) return d;
+                const m = d.getMinutes();
+                const r = m % round;
+                if(r===0) return d;
+                return addMin(d, round - r);
+            };
+            const roundDown = (d) => {
+                if(!round) return d;
+                const m = d.getMinutes();
+                const r = m % round;
+                if(r===0) return d;
+                return addMin(d, -r);
+            };
+            
+            // Forward (Depart base -> End)
+            // 基点の出発時間 = 基点到着時間(入力値) + 滞在時間
+            // ただし基点が「出発」の場合は到着=出発
+            stops[baseIdx].arrTime = t;
+            // 丸めは「出発時刻」に行う
+            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime));
+            
+            for(let i=baseIdx+1; i<stops.length; i++) {
+                if(stops[i].type === 'MOVE') {
+                    // 何もしない（duration持ってるだけ）
+                } else {
+                    // Stop
+                    const prevMove = stops[i-1];
+                    const prevStop = stops[i-2];
+                    const arr = addMin(prevStop.depTime, prevMove.duration || 0);
+                    stops[i].arrTime = arr;
+                    stops[i].depTime = roundUp(addMin(arr, stops[i].stayTime));
+                }
+            }
+
+            // Backward (Depart base -> Start)
+            // 基点到着時刻から逆算
+            t = stops[baseIdx].arrTime;
+            for(let i=baseIdx-1; i>=0; i--) {
+                if(stops[i].type === 'MOVE') {
+                    // skip
+                } else {
+                    // Stop
+                    const nextMove = stops[i+1];
+                    const nextStop = stops[i+2]; // (base)
+                    // 次の到着 - 移動時間 = 自分の出発
+                    const dep = addMin(nextStop.arrTime, -(nextMove.duration||0));
+                    stops[i].depTime = roundDown(dep); // 逆算は切り捨て（間に合うように）
+                    stops[i].arrTime = addMin(stops[i].depTime, -stops[i].stayTime);
+                }
+            }
+
+            // 文字列化
+            const fmt = (d) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+            stops.forEach(s => {
+                if(s.type==='STOP') s.timeStr = fmt(s.arrTime); // 基本は到着時間を表示
+                // 出発地の場合は出発時間を表示したいが、レイアウト上timeStrは一つ
+                // ロジック簡略化のため、一番上だけ出発時間にするなどの調整が必要だが
+                // サンプルに合わせて「到着」ベースまたは「基点」ベースで表示
+                if (s === stops[0]) s.timeStr = fmt(s.depTime); // 最初の出発地だけ出発時間
+            });
+        }
+
+        // --- 4. 共通ヘルパー ---
+        function updateDatalist() {
+            const list = document.getElementById('saved-locations-list');
+            if(list) list.innerHTML = savedLocations.map(x=>`<option value="${x}">`).join('');
+        }
+        function goHome() {
+            if(mode==='EDIT' && !confirm('編集内容は破棄されます。よろしいですか？')) return;
+            renderDashboard();
+        }
+        function saveCurrentPlan() {
+            editingPlan.updatedAt = new Date().toISOString();
+            // 上書き or 新規
+            const idx = savedPlans.findIndex(p => p.id === editingPlan.id);
+            if(idx >= 0) savedPlans[idx] = editingPlan;
+            else savedPlans.unshift(editingPlan);
+            localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans));
+            alert('マイページに保存しました');
+            renderDashboard();
+        }
+        function deletePlan(i) {
+            if(!confirm('削除しますか？')) return;
+            savedPlans.splice(i, 1);
+            localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans));
+            renderDashboard();
+        }
+        function openPlan(i) {
+            editingPlan = savedPlans[i];
+            mode = 'RESULT';
+            renderTimeline();
+        }
+        
+        // 共有機能
+        function checkUrlImport() {
+            const p = new URLSearchParams(location.search);
+            const d = p.get('d');
+            if(d) {
+                try {
+                    const json = LZString.decompressFromEncodedURIComponent(d);
+                    if(json) {
+                        const plan = JSON.parse(json);
+                        plan.id = 'import_'+Date.now();
+                        savedPlans.unshift(plan);
+                        localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans));
+                        alert('共有されたプランを読み込みました');
+                        history.replaceState(null, '', location.pathname);
+                    }
+                } catch(e){}
+            }
+        }
+        function sharePlan(i) {
+            const plan = savedPlans[i];
+            const json = JSON.stringify(plan);
+            const compressed = LZString.compressToEncodedURIComponent(json);
+            const url = `${location.origin}${location.pathname}?d=${compressed}`;
+            if(navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(()=>alert('共有URLをコピーしました'));
+            } else {
+                prompt('URLをコピー:', url);
+            }
+        }
+
+    </script>
+</body>
+</html>
