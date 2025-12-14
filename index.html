@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅のしおりメーカー v4.1</title>
+    <title>旅のしおりメーカー v5.0</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,12 +12,12 @@
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
         
         /* タイムライン線 */
-        .timeline-line { position: absolute; left: 11px; top: 10px; bottom: -10px; width: 2px; background-color: #e5e7eb; z-index: 0; }
+        .timeline-line { position: absolute; left: 11px; top: 12px; bottom: -12px; width: 2px; background-color: #e5e7eb; z-index: 0; }
         .timeline-item:last-child .timeline-line { display: none; }
         
-        /* ドット (位置修正: 上に上げる) */
+        /* ドット (位置調整: 行頭に揃える) */
         .timeline-dot { 
-            position: absolute; left: 0; top: -3px;
+            position: absolute; left: 0; top: 3px; 
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #94a3b8;
@@ -48,15 +48,18 @@
 
         .modal-bg { background-color: rgba(0,0,0,0.5); }
         
-        /* 印刷用設定 (PDF化のため) */
+        /* 印刷用設定 */
         @media print {
             .no-print { display: none !important; }
-            body, #app-content { background-color: #fff; margin: 0; padding: 0; max-width: 100%; }
+            body, #app-content { background-color: #fff; margin: 0; padding: 0; width: 100%; }
             .shadow-xl, .shadow-lg, .shadow-sm { box-shadow: none !important; border: none !important; }
-            .bg-gradient-to-r { background: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: white !important; }
+            .bg-gradient-to-r { background: #4f46e5 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .timeline-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            /* ページ分割対策 */
-            .timeline-item, .relative { break-inside: avoid; }
+            .timeline-item { break-inside: avoid; }
+            
+            /* 地図印刷の強制 */
+            #full-map-area { height: 400px !important; width: 100% !important; border: 1px solid #ccc; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .gm-style img { max-width: none !important; } /* Google Maps画像表示対策 */
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOStiNglNEGEnPnhDxJG0RSQqgJXVtUQw&libraries=places,geometry&callback=initMap" async defer></script>
@@ -68,7 +71,7 @@
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v4.1</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.0</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -185,7 +188,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '4.1';
+        const APP_VERSION = '5.0';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -200,7 +203,7 @@
             if(mode === 'DASHBOARD') renderDashboard();
         };
 
-        // --- サンプルデータ ---
+        // --- サンプルデータ (千葉のダム巡り) ---
         function getSampleData() {
             const date = new Date(); date.setDate(date.getDate()+1);
             const ymd = date.toISOString().split('T')[0];
@@ -276,13 +279,20 @@
             const isSample = (mode === 'SAMPLE');
             const plan = editingPlan;
             
+            // 地図エリア用のIDを確保
+            let mapContainerHtml = (!isEdit) ? 
+                `<div class="p-6 border-t border-gray-200 bg-gray-50 print:bg-white print:border-none">
+                    <div class="text-sm font-bold text-gray-500 mb-2 no-print">🗺️ ルートマップ</div>
+                    <div class="bg-white rounded-xl h-64 w-full border border-gray-300 overflow-hidden shadow-inner" id="full-map-area"></div>
+                 </div>` : '';
+
             let html = `
                 <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] relative" id="print-area">
-                    <div class="p-5 bg-gradient-to-r from-indigo-700 to-blue-700 text-white text-center">
+                    <div class="p-5 bg-gradient-to-r from-indigo-700 to-blue-700 text-white text-center print:text-black print:bg-white">
                         <h2 class="text-xl font-extrabold mb-1">${plan.name}</h2>
-                        ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80">${new Date().toLocaleDateString()} 作成</p>`}
+                        ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full no-print">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80 print:text-gray-600">${new Date().toLocaleDateString()} 作成</p>`}
                     </div>
-                    <div class="p-4 sm:p-6 pb-24 space-y-0">`; 
+                    <div class="p-4 sm:p-6 space-y-0">`; 
 
             plan.stops.forEach((item, i) => {
                 const isFirst = i === 0; 
@@ -322,27 +332,18 @@
                         </div>`;
                     }
 
-                    if (isStart) {
-                         html += `
+                    const timeDiv = `<div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${timeDisp}</div>`;
+                    const rowBase = `
                         <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
                             <div class="timeline-line"></div>
                             <div class="timeline-dot ${dotClass}">${dotIcon}</div>
                             <div class="flex items-center gap-2">
-                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${item.timeStr}</div>
-                                <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-gray-600 ml-1">出発</span>${controls}</div>
-                            </div>
-                        </div>`;
-                    } else {
-                        html += `
-                        <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
-                            <div class="timeline-line"></div>
-                            <div class="timeline-dot ${dotClass}">${dotIcon}</div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${timeDisp}</div>
+                                ${timeDiv}
                                 <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-gray-600 ml-1">${suffix}</span>${controls}</div>
                             </div>
                         </div>`;
-                    }
+                    
+                    html += rowBase;
 
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
@@ -411,10 +412,22 @@
                             <span class="text-gray-400">移動 ${dur}</span>
                         </div>`;
                     } else {
+                        // 道路名フィルター (川崎駅/東名 -> 東名高速道路)
                         let roadsList = '';
                         if (item.roads && item.roads.length > 0) {
-                            const cleanRoads = item.roads.map(r => r.replace(/(高速自動車国道|自動車道|高速道路)/g, ''));
-                            roadsList = cleanRoads.map(r => `<div>${r}</div>`).join('');
+                            // フィルタリングロジック強化
+                            const cleanRoads = item.roads.map(r => {
+                                // 1. スラッシュで分割して、最も道路名っぽいものを選ぶ
+                                const parts = r.split('/');
+                                // 長さやキーワードで判断
+                                let bestPart = parts.find(p => p.includes('高速') || p.includes('道') || p.includes('ライン')) || parts[0];
+                                // 2. 不要な修飾語を削除 (JCT, 出口, 方面など)
+                                return bestPart.replace(/(\(.+\)|JCT|出口|方面|ルート|進む)/g, '').trim();
+                            }).filter(r => r.length > 1); // 1文字は除外
+                            
+                            // 重複排除
+                            const uniqueRoads = [...new Set(cleanRoads)];
+                            roadsList = uniqueRoads.map(r => `<div>${r}</div>`).join('');
                         }
                         
                         let navBtn = '';
@@ -431,7 +444,7 @@
                         moveContent = `
                         <div class="pl-12">
                             <div class="text-sm font-bold text-gray-600 flex items-center mb-1">
-                                ${icon} ${modeLabels[mKey]}${tollTag}移動 ${dur}
+                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>
                             </div>
                             <div class="flex gap-4 items-start">
                                 <div class="min-w-[60px] pt-1">${navBtn}</div>
@@ -450,6 +463,10 @@
                 }
             });
 
+            html += `</div>`; // Close p-6
+            html += mapContainerHtml; // 地図コンテナをここに追加
+            html += `</div>`; // Close card
+
             // フッター
             let footer = '';
             if (isSample) {
@@ -460,20 +477,25 @@
                     <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
                     <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
                 </div>`;
-            } else { // RESULT (Completed)
+            } else { // RESULT
                 footer = `
                 <div class="mt-8 no-print space-y-4 pb-8">
-                    <div class="bg-gray-100 rounded-xl h-64 w-full border border-gray-200" id="full-map-area"></div>
                     <div class="flex gap-2">
                         <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300">修正する</button>
-                        <button onclick="window.print()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">📄 PDF / 印刷</button>
+                        <button onclick="printMode()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">📄 PDF / 印刷</button>
                         <button onclick="saveCurrentPlan()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700">保存する</button>
                     </div>
                 </div>`;
             }
 
-            document.getElementById('app-content').innerHTML = html + footer + `</div></div>`;
-            if(!isEdit && !isSample) setTimeout(initFullMap, 500); 
+            document.getElementById('app-content').innerHTML = html + footer;
+            
+            if(!isEdit) setTimeout(initFullMap, 500); 
+        }
+
+        function printMode() {
+            alert('PDF保存のヒント:\n印刷画面で「送信先」を「PDFに保存」にしてください。\nきれいな色で印刷するには「背景のグラフィック」にチェックを入れてください。');
+            window.print();
         }
 
         // --- ロジック ---
@@ -659,22 +681,19 @@
 
             let t = new Date(editingPlan.baseTime);
             stops[baseIdx].arrTime = t; 
-            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime)); // Base Dep Rounding
+            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime));
             
-            // Forward (Base -> End)
             for(let i=baseIdx+1; i<stops.length; i++) {
                 if(stops[i].type === 'STOP') {
                     const prevMove = stops[i-1];
                     const prevStop = stops[i-2];
-                    // ★修正ポイント: 到着時間も丸めて、スケジュール全体をグリッドに乗せる
+                    // ★ 到着も丸め、出発も丸める
                     const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0);
-                    const arrRounded = roundUp(arrRaw); // Arrival Rounding
+                    const arrRounded = roundUp(arrRaw);
                     stops[i].arrTime = arrRounded;
-                    stops[i].depTime = roundUp(addMin(arrRounded, stops[i].stayTime)); // Departure Rounding
+                    stops[i].depTime = roundUp(addMin(arrRounded, stops[i].stayTime));
                 }
             }
-            
-            // Backward (Base -> Start)
             t = stops[baseIdx].arrTime;
             for(let i=baseIdx-1; i>=0; i--) {
                 if(stops[i].type === 'STOP') {
@@ -685,7 +704,7 @@
                         stops[i].arrTime = addMin(stops[i].depTime, -20);
                     } else {
                         const depRaw = addMin(nextStop.arrTime, -(nextMove.duration||0));
-                        stops[i].depTime = roundDown(depRaw); // Departure Rounding (Down)
+                        stops[i].depTime = roundDown(depRaw);
                         stops[i].arrTime = addMin(stops[i].depTime, -stops[i].stayTime);
                     }
                 }
