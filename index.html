@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅のしおりメーカー v3.0</title>
+    <title>旅のしおりメーカー v4.0</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,12 +12,12 @@
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
         
         /* タイムライン線 */
-        .timeline-line { position: absolute; left: 11px; top: 20px; bottom: -20px; width: 2px; background-color: #e5e7eb; z-index: 0; }
+        .timeline-line { position: absolute; left: 11px; top: 10px; bottom: -10px; width: 2px; background-color: #e5e7eb; z-index: 0; }
         .timeline-item:last-child .timeline-line { display: none; }
         
-        /* ドット (位置調整済み) */
+        /* ドット (位置修正: 上に上げる) */
         .timeline-dot { 
-            position: absolute; left: 0; top: 4px; /* 位置調整 */
+            position: absolute; left: 0; top: -3px; /* 下がっていたのを修正 */
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #94a3b8;
@@ -32,11 +32,11 @@
             cursor: pointer;
             transition: all 0.2s;
             font-weight: bold;
-            min-width: 40px;
+            min-width: 60px; /* 少し広めに */
             text-align: center;
         }
         .input-hole:hover { background-color: #eef2ff; border-bottom-style: solid; }
-        .input-hole.filled { border-bottom: none; color: #1f2937; pointer-events: auto; text-align: left;} 
+        .input-hole.filled { border-bottom: none; color: #1f2937; pointer-events: auto; text-align: left; min-width: auto; } 
         .input-hole.filled:hover { color: #4f46e5; }
         .input-readonly { color: #1f2937; border-bottom: none; pointer-events: none; }
 
@@ -48,6 +48,9 @@
             font-size: 0.75rem; color: #64748b;
         }
         .select-box:hover { border-color: #6366f1; color: #4f46e5; }
+
+        /* 完成画面: 有料タグ */
+        .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #666; }
 
         .modal-bg { background-color: rgba(0,0,0,0.5); }
         .no-print { display: block; }
@@ -62,7 +65,7 @@
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v3.0</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v4.0</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -179,7 +182,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '3.0';
+        const APP_VERSION = '4.0';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -194,22 +197,17 @@
             if(mode === 'DASHBOARD') renderDashboard();
         };
 
-        // --- サンプルデータ (千葉のダム巡り - 完全修正版) ---
+        // --- サンプルデータ (千葉のダム巡り) ---
         function getSampleData() {
-            // 基点を「昼食 12:00」とする
             const date = new Date(); date.setDate(date.getDate()+1);
             const ymd = date.toISOString().split('T')[0];
             return {
                 id: 'sample', name: '千葉のダム巡り', baseTime: `${ymd}T12:00`, rounding: 0,
                 stops: [
-                    // Index 0: 集合 (Start - Move - Stopの構造ではない特殊な開始点)
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'集合', memo:'', isBase:false, timeStr:'07:40' },
-                    // Index 1: Move (ダミー移動 20分待機) -> 実際には「集合」から「出発」までの時間
                     { type:'MOVE', mode:'WAIT', duration:0, dist:0 }, 
-                    // Index 2: 出発地
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'08:00', depTimeStr:'08:00' },
                     
-                    // 行程開始
                     { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['東京湾アクアライン','館山自動車道'] },
                     { type:'STOP', name:'矢那川ダム 展望台', location:'矢那川ダム', confirmed:true, stayTime:20, stayReason:'矢那川ダム撮影', memo:'', isBase:false, timeStr:'08:50', depTimeStr:'09:10' },
                     
@@ -289,11 +287,11 @@
                         <h2 class="text-xl font-extrabold mb-1">${plan.name}</h2>
                         ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80">${new Date().toLocaleDateString()} 作成</p>`}
                     </div>
-                    <div class="p-4 sm:p-6 pb-24 space-y-0">`; // pb-24 for footer space
+                    <div class="p-4 sm:p-6 pb-24 space-y-0">`; 
 
             plan.stops.forEach((item, i) => {
-                const isFirst = i === 0; // 集合
-                const isStart = i === 2; // 出発
+                const isFirst = i === 0; 
+                const isStart = i === 2;
                 const isLast = i === plan.stops.length - 1;
                 
                 if (item.type === 'STOP') {
@@ -306,11 +304,10 @@
                     const dotClass = item.isBase ? 'border-red-500 text-red-500' : 'border-gray-400 text-gray-400';
                     const dotIcon = item.isBase ? '★' : '●';
 
-                    // 地点名表示 (Index 0は編集不可。Index 2の入力を反映するため)
+                    // 地点名
                     let nameHtml = '';
                     if (isEdit) {
                         if (isFirst) {
-                            // 集合場所は読み取り専用（出発地と同じ）
                             const val = item.name || '（出発地と同じ）';
                             nameHtml = `<span class="input-readonly text-gray-500 text-sm">${val}</span>`;
                         } else {
@@ -322,57 +319,56 @@
                         nameHtml = `<span class="font-bold text-gray-800">${item.name}</span>`;
                     }
 
-                    // 削除・移動ボタン (集合と出発は移動不可)
+                    // 削除・移動ボタン (右端へ配置)
                     let controls = '';
                     if (isEdit && i > 2) {
                         controls = `
-                        <div class="flex gap-1 ml-2">
-                            ${i > 4 ? `<button onclick="moveStop(${i},-1)" class="text-[10px] bg-gray-100 px-1 rounded hover:bg-gray-200">↑</button>` : ''}
+                        <div class="ml-auto flex gap-1"> ${i > 4 ? `<button onclick="moveStop(${i},-1)" class="text-[10px] bg-gray-100 px-1 rounded hover:bg-gray-200">↑</button>` : ''}
                             ${!isLast ? `<button onclick="moveStop(${i},1)" class="text-[10px] bg-gray-100 px-1 rounded hover:bg-gray-200">↓</button>` : ''}
                             <button onclick="deleteStop(${i})" class="text-red-400 text-xs ml-1 font-bold">×</button>
                         </div>`;
                     }
 
-                    // 行の描画 (出発地の場合は「到着」とは言わず、そのまま出発時間を表示するのでこの行はスキップしたいが、
-                    // レイアウト上「集合」→「（空き）」→「出発」となる。
-                    // Index 2 (Start) の場合、suffixを空にして、時間をdepTimeStrのみにする手もあるが、
-                    // 要望のフォーマット「● 08:00 海ほたる 出発」に合わせる。
-                    
                     if (isStart) {
-                         // Index 2 は「出発」専用行として扱う
+                         // Index 2: 出発専用
                          html += `
                         <div class="relative pl-8 pb-3 min-h-[30px]">
                             <div class="timeline-line"></div>
                             <div class="timeline-dot ${dotClass}">${dotIcon}</div>
                             <div class="flex items-center gap-2">
-                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${item.timeStr}</div> <div class="flex-grow text-sm">${nameHtml} <span class="font-bold text-gray-600">出発</span></div>
+                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${item.timeStr}</div>
+                                <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-gray-600 ml-1">出発</span>${controls}</div>
                             </div>
                         </div>`;
                     } else {
-                        // 通常の到着・集合行
+                        // 通常
                         html += `
                         <div class="relative pl-8 pb-3 min-h-[30px]">
                             <div class="timeline-line"></div>
                             <div class="timeline-dot ${dotClass}">${dotIcon}</div>
                             <div class="flex items-center gap-2">
                                 <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${timeDisp}</div>
-                                <div class="flex-grow text-sm flex items-center">${nameHtml} <span class="font-bold text-gray-600 ml-1">${suffix}</span>${controls}</div>
+                                <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-gray-600 ml-1">${suffix}</span>${controls}</div>
                             </div>
                         </div>`;
                     }
 
-                    // --- 2. 滞在情報 (集合・出発・最終以外) ---
+                    // --- 2. 滞在情報 ---
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
                         if (isEdit) {
-                            const rVal = item.stayReason || '滞在理由';
+                            const rVal = item.stayReason || '滞在理由入力'; // 初期表示
+                            const rCls = item.stayReason ? 'filled' : 'text-gray-400';
                             const tVal = item.stayTime || '00';
+                            const mVal = item.memo || '📝 メモ入力';
+                            const mCls = item.memo ? 'filled' : 'text-gray-400';
+                            
                             stayHtml = `
                                 <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
                                     <span class="text-xl">⏳</span>
-                                    <span onclick="openStayModal(${i})" class="input-hole ${item.stayReason?'filled':'text-gray-400'}">${rVal}</span> 滞在 
-                                    <span onclick="openStayModal(${i})" class="input-hole ${item.stayTime?'filled':'text-gray-400'}">${tVal}</span> 分
-                                    <span onclick="openMemoModal(${i})" class="input-hole ${item.memo?'filled':'text-gray-400'} text-xs ml-2">${item.memo||'📝 メモ入力'}</span>
+                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls}">${rVal}</span> 滞在 
+                                    <span onclick="openStayModal(${i})" class="input-hole filled text-center" style="min-width:30px">${tVal}</span> 分
+                                    <span onclick="openMemoModal(${i})" class="input-hole ${mCls} text-xs ml-2">${mVal}</span>
                                 </div>`;
                         } else {
                             if (item.stayReason || item.stayTime > 0) {
@@ -393,8 +389,7 @@
                             html += `<div class="relative pl-8 pb-2"><div class="timeline-line"></div>${stayHtml}</div>`;
                         }
 
-                        // --- 3. 出発 行 (自動挿入) ---
-                        // 編集モードでも「出発」行を見せる
+                        // --- 3. 出発 行 ---
                         const depTime = item.depTimeStr || '00:00'; 
                         let depNameHtml = isEdit ? `<span class="text-gray-400">${item.name||'地点名'}</span>` : `<span class="font-bold text-gray-800">${item.name}</span>`;
 
@@ -411,59 +406,71 @@
 
                 } else if (item.type === 'MOVE') {
                     // --- 移動 行 ---
-                    if (item.mode === 'WAIT') return; // Index 1のダミーはスキップ
+                    if (item.mode === 'WAIT') return; 
 
                     const mKey = item.mode;
-                    const modeLabels = { 'DRIVING_FREE':'車', 'DRIVING_TOLL':'車(有料)', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
+                    const modeLabels = { 'DRIVING_FREE':'車', 'DRIVING_TOLL':'車', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
                     const icon = { 'DRIVING_FREE':'🚗', 'DRIVING_TOLL':'🚗', 'WALKING':'🚶', 'BICYCLING':'🚲' }[mKey] || '🚗';
                     const dur = item.duration ? `${item.duration}分` : '00分';
+                    const isToll = (mKey === 'DRIVING_TOLL');
                     
                     let moveContent = '';
                     if (isEdit) {
+                        // 編集時
+                        const label = modeLabels[mKey] + (isToll ? '<span class="toll-tag">(有料)</span>' : '');
                         moveContent = `
                         <div class="flex items-center gap-2 text-sm pl-12">
-                            <span onclick="openTransportModal(${i})" class="select-box">${icon} ${modeLabels[mKey]} ▼</span>
+                            <span onclick="openTransportModal(${i})" class="select-box">${icon} ${label.replace(/<[^>]*>?/gm, '')} ${isToll?'(有料)':''} ▼</span>
                             <span class="text-gray-400">移動 ${dur}</span>
                         </div>`;
                     } else {
-                        let roads = '';
+                        // 完成・サンプル画面 (指定のレイアウトへ変更)
+                        let roadsList = '';
                         if (item.roads && item.roads.length > 0) {
-                            roads = `<div class="text-xs text-gray-500 ml-1 leading-tight">${item.roads.join('<br>')}</div>`;
+                            // 道路名を短くフィルタリング
+                            const cleanRoads = item.roads.map(r => r.replace(/(高速自動車国道|自動車道|高速道路)/g, '')); // 簡易短縮
+                            roadsList = cleanRoads.map(r => `<div>${r}</div>`).join('');
                         }
-                        // ナビボタン (SampleでもEditでもないResultモード、あるいはSampleモードでも表示要望あり)
+                        
+                        // ナビボタン
                         let navBtn = '';
                         if (plan.stops[i-1] && plan.stops[i+1]) {
                              const origin = encodeURIComponent(plan.stops[i-1].location);
                              const dest = encodeURIComponent(plan.stops[i+1].location);
                              const tmode = (mKey.includes('DRIVING')) ? 'driving' : (mKey==='WALKING'?'walking':'bicycling');
                              const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${tmode}`;
-                             navBtn = `<a href="${url}" target="_blank" class="ml-2 text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-100 no-print flex items-center gap-1 w-fit">🧭 ナビ</a>`;
+                             navBtn = `<a href="${url}" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 no-print inline-flex items-center gap-1 font-bold">🧭 ナビ</a>`;
                         }
                         
+                        const tollTag = isToll ? `<span class="toll-tag">(有料)</span>` : '';
+                        
                         moveContent = `
-                        <div class="flex gap-2 pl-12">
-                            <div class="text-sm font-bold text-gray-600 flex items-center flex-wrap">
-                                ${icon} ${modeLabels[mKey]}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>
+                        <div class="pl-12">
+                            <div class="text-sm font-bold text-gray-600 flex items-center mb-1">
+                                ${icon} ${modeLabels[mKey]}${tollTag}移動 ${dur}
                             </div>
-                            ${roads}
-                        </div>
-                        <div class="pl-12 mt-1">${navBtn}</div>`;
+                            <div class="flex gap-4 items-start">
+                                <div class="min-w-[60px] pt-1">${navBtn}</div>
+                                <div class="text-xs text-gray-500 leading-relaxed">
+                                    ${roadsList}
+                                </div>
+                            </div>
+                        </div>`;
                     }
 
                     html += `
-                    <div class="relative pb-3">
+                    <div class="relative pb-4">
                         <div class="timeline-line"></div>
                         ${moveContent}
                     </div>`;
                 }
             });
 
-            // フッター (ボタン類)
+            // フッター
             let footer = '';
             if (isSample) {
                 footer = `<div class="mt-8 text-center pb-8"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
             } else if (isEdit) {
-                // 編集画面にもボタンを設置
                 footer = `
                 <div class="mt-8 space-y-4 text-center pb-8">
                     <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
@@ -485,20 +492,31 @@
             if(!isEdit && !isSample) setTimeout(initFullMap, 500); 
         }
 
-        // --- 3. ロジック ---
+        // --- ロジック ---
         function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
         
         function copySampleToEdit() {
             const sample = getSampleData();
-            // 名前や確定フラグをクリアして編集用データ作成
             editingPlan = {
                 id: 'plan_' + Date.now(), name: '新規旅程プラン', baseTime: sample.baseTime, rounding: 0,
                 stops: sample.stops.map(s => {
                     if (s.type === 'MOVE') return { ...s, duration: 0, roads:[] };
-                    return { ...s, name:'', location:'', confirmed:false, stayTime: s.stayTime, stayReason: s.stayReason, memo: s.memo, timeStr:'00:00', depTimeStr:'00:00' };
+                    
+                    // ★要望対応: サンプルの具体的な内容をクリア（昼食となめろう以外）
+                    let r = '';
+                    if (s.stayReason === '昼食') r = '昼食';
+                    
+                    let m = '';
+                    if (s.memo && s.memo.includes('なめろう')) m = s.memo;
+
+                    return { 
+                        ...s, name:'', location:'', confirmed:false, 
+                        stayReason: r, memo: m, 
+                        timeStr:'00:00', depTimeStr:'00:00' 
+                    };
                 })
             };
-            // 集合と出発の連携のため、初期化
+            // 集合と出発の連携初期化
             editingPlan.stops[0].name = '（出発地と同じ）';
             
             mode = 'EDIT'; renderTimeline();
@@ -512,39 +530,27 @@
         }
         
         function deleteStop(idx) {
-            // Index 0(Meet), 1(Wait), 2(Start) は削除不可
             if(idx <= 2 || idx === editingPlan.stops.length-1) { alert('この地点は削除できません'); return; }
-            editingPlan.stops.splice(idx-1, 2); // 前のMoveと自分を削除
+            editingPlan.stops.splice(idx-1, 2); 
             renderTimeline();
         }
 
-        // 並び替え修正：MoveとStopをセットで動かす
         function moveStop(idx, dir) {
-            // 動かせるのは Index 4 (最初の目的地) 以降
             if (idx <= 2) return; 
-
-            // idx は STOP のインデックス。 手前の MOVE (idx-1) とセットで動かす。
             const moveIdx = idx - 1; 
-
-            if (dir === -1) { // Up
-                // 一つ前が Start(Index 2) なら移動不可 (MoveIdxが3より小さいとダメ)
+            if (dir === -1) { 
                 if (moveIdx <= 2) return; 
-                
-                // [Move(Target-2), Stop(Target-1)] <-> [Move(Self), Stop(Self)]
                 const selfSet = editingPlan.stops.splice(moveIdx, 2); 
                 editingPlan.stops.splice(moveIdx - 2, 0, ...selfSet);
-            } else { // Down
-                // 後ろがないなら戻る
+            } else { 
                 if (idx >= editingPlan.stops.length - 2) return;
-
-                // [Move(Self), Stop(Self)] <-> [Move(Target+1), Stop(Target+1)]
                 const selfSet = editingPlan.stops.splice(moveIdx, 2);
                 editingPlan.stops.splice(moveIdx + 2, 0, ...selfSet);
             }
             renderTimeline();
         }
 
-        // --- Modal Logic ---
+        // --- Modal Logic (変更なし) ---
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -582,21 +588,16 @@
         }
         function confirmLocation() {
             if(!tempLocationData) { alert('確定を行ってください'); return; }
-            
-            // データの更新
             const item = editingPlan.stops[editingIndex];
             item.name = document.getElementById('input-loc-name').value;
             item.location = tempLocationData;
             item.confirmed = true;
-            
-            // ★重要：出発地(Index 2)を入力したら、集合場所(Index 0)にもコピーする
             if (editingIndex === 2) {
                 const meet = editingPlan.stops[0];
                 meet.name = item.name;
                 meet.location = item.location;
                 meet.confirmed = true;
             }
-
             closeModal('modal-location');
             renderTimeline();
         }
@@ -673,7 +674,6 @@
                     const end = editingPlan.stops[i+1].location;
                     let gMode = 'DRIVING';
                     let avoidTolls = false;
-                    
                     if(item.mode === 'DRIVING_FREE') avoidTolls = true;
                     else if(item.mode === 'DRIVING_TOLL') avoidTolls = false;
                     else gMode = item.mode;
@@ -704,7 +704,6 @@
             renderTimeline();
         }
 
-        // 時間計算
         function calculateSchedule() {
             const stops = editingPlan.stops;
             const baseIdx = stops.findIndex(s => s.type==='STOP' && s.isBase);
@@ -723,8 +722,6 @@
             const fmt = (d) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 
             let t = new Date(editingPlan.baseTime);
-
-            // Forward
             stops[baseIdx].arrTime = t; 
             stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime));
             
@@ -737,18 +734,14 @@
                     stops[i].depTime = roundUp(addMin(arr, stops[i].stayTime));
                 }
             }
-
-            // Backward
             t = stops[baseIdx].arrTime;
             for(let i=baseIdx-1; i>=0; i--) {
                 if(stops[i].type === 'STOP') {
                     const nextMove = stops[i+1];
                     const nextStop = stops[i+2]; 
-                    
                     if (nextMove.mode === 'WAIT') {
-                        // 特殊: 出発(Index 2) -> 集合(Index 0) の間。移動時間0とみなす。
                         stops[i].depTime = nextStop.arrTime; 
-                        stops[i].arrTime = addMin(stops[i].depTime, -20); // 集合は出発の20分前固定とする
+                        stops[i].arrTime = addMin(stops[i].depTime, -20);
                     } else {
                         const depRaw = addMin(nextStop.arrTime, -(nextMove.duration||0));
                         stops[i].depTime = roundDown(depRaw);
@@ -756,7 +749,6 @@
                     }
                 }
             }
-
             stops.forEach(s => {
                 if(s.type==='STOP') {
                     s.timeStr = fmt(s.arrTime);
@@ -765,21 +757,13 @@
             });
         }
 
-        // --- ヘルパー ---
         function initFullMap() {
             const div = document.getElementById('full-map-area'); if(!div) return;
             const map = new google.maps.Map(div, {zoom: 9, center: {lat:35.681, lng:139.767}, disableDefaultUI: true});
             const renderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: false, polylineOptions:{strokeColor:'#4f46e5', strokeWeight:4} });
-            
-            // Index 2 (Start) から Last までを描画
             const pts = editingPlan.stops.slice(2).filter(s => s.type === 'STOP').map(s => ({ location: s.location, stopover: true }));
             if(pts.length < 2) return;
-            
-            const origin = pts[0].location;
-            const dest = pts[pts.length-1].location;
-            const waypoints = pts.slice(1, pts.length-1);
-
-            new google.maps.DirectionsService().route({ origin: origin, destination: dest, waypoints: waypoints, travelMode: 'DRIVING' }, (res, status) => { if(status==='OK') renderer.setDirections(res); });
+            new google.maps.DirectionsService().route({ origin: pts[0].location, destination: pts[pts.length-1].location, waypoints: pts.slice(1, pts.length-1), travelMode: 'DRIVING' }, (res, status) => { if(status==='OK') renderer.setDirections(res); });
         }
 
         function updateDatalist() { const l=document.getElementById('saved-locations-list'); if(l) l.innerHTML=savedLocations.map(x=>`<option value="${x}">`).join(''); }
@@ -795,7 +779,6 @@
         }
         function deletePlan(i) { if(!confirm('削除しますか？')) return; savedPlans.splice(i, 1); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); renderDashboard(); }
         function openPlan(i) { editingPlan = savedPlans[i]; mode = 'RESULT'; renderTimeline(); }
-        
         function checkUrlImport() {
             const p = new URLSearchParams(location.search);
             const d = p.get('d');
