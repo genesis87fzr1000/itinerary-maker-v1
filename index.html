@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅のしおりメーカー v5.0</title>
+    <title>旅のしおりメーカー v5.1</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,16 +11,20 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
         
-        /* タイムライン線 */
-        .timeline-line { position: absolute; left: 11px; top: 12px; bottom: -12px; width: 2px; background-color: #e5e7eb; z-index: 0; }
+        /* タイムライン線: ドットの中心を通るように配置 */
+        .timeline-container { position: relative; padding-left: 20px; }
+        .timeline-line { 
+            position: absolute; left: 11px; top: 24px; bottom: -10px; 
+            width: 2px; background-color: #e5e7eb; z-index: 0; 
+        }
         .timeline-item:last-child .timeline-line { display: none; }
         
-        /* ドット (位置調整: 行頭に揃える) */
+        /* ドット: Flexボックス内で自然に配置し、ズレを防ぐ */
         .timeline-dot { 
-            position: absolute; left: 0; top: 3px; 
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #94a3b8;
+            flex-shrink: 0; margin-right: 12px; position: relative;
         }
         
         /* 編集モード: 穴埋めスタイル */
@@ -51,15 +55,21 @@
         /* 印刷用設定 */
         @media print {
             .no-print { display: none !important; }
-            body, #app-content { background-color: #fff; margin: 0; padding: 0; width: 100%; }
+            body, #app-content { background-color: #fff !important; margin: 0; padding: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .shadow-xl, .shadow-lg, .shadow-sm { box-shadow: none !important; border: none !important; }
-            .bg-gradient-to-r { background: #4f46e5 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .timeline-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .timeline-item { break-inside: avoid; }
-            
-            /* 地図印刷の強制 */
-            #full-map-area { height: 400px !important; width: 100% !important; border: 1px solid #ccc; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .gm-style img { max-width: none !important; } /* Google Maps画像表示対策 */
+            .bg-gradient-to-r { background: #4f46e5 !important; color: white !important; }
+            /* スマホ地図バグ対策: 固定サイズと背景白強制 */
+            #full-map-area { 
+                height: 400px !important; 
+                width: 100% !important; 
+                border: 1px solid #ccc; 
+                background-color: #fff !important;
+                position: relative;
+                z-index: 10;
+            }
+            .gm-style img { max-width: none !important; }
+            /* ページ分割対策 */
+            .timeline-item { break-inside: avoid; page-break-inside: avoid; }
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOStiNglNEGEnPnhDxJG0RSQqgJXVtUQw&libraries=places,geometry&callback=initMap" async defer></script>
@@ -71,7 +81,7 @@
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.0</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.1</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -188,7 +198,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '5.0';
+        const APP_VERSION = '5.1';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -203,7 +213,7 @@
             if(mode === 'DASHBOARD') renderDashboard();
         };
 
-        // --- サンプルデータ (千葉のダム巡り) ---
+        // --- サンプルデータ ---
         function getSampleData() {
             const date = new Date(); date.setDate(date.getDate()+1);
             const ymd = date.toISOString().split('T')[0];
@@ -279,11 +289,11 @@
             const isSample = (mode === 'SAMPLE');
             const plan = editingPlan;
             
-            // 地図エリア用のIDを確保
+            // 地図エリア
             let mapContainerHtml = (!isEdit) ? 
                 `<div class="p-6 border-t border-gray-200 bg-gray-50 print:bg-white print:border-none">
                     <div class="text-sm font-bold text-gray-500 mb-2 no-print">🗺️ ルートマップ</div>
-                    <div class="bg-white rounded-xl h-64 w-full border border-gray-300 overflow-hidden shadow-inner" id="full-map-area"></div>
+                    <div class="bg-white rounded-xl h-64 w-full border border-gray-300 overflow-hidden shadow-inner print:shadow-none" id="full-map-area"></div>
                  </div>` : '';
 
             let html = `
@@ -299,6 +309,7 @@
                 const isStart = i === 2;
                 const isLast = i === plan.stops.length - 1;
                 
+                // --- STOP ITEM ---
                 if (item.type === 'STOP') {
                     const timeDisp = item.timeStr || '00:00';
                     let suffix = '到着';
@@ -332,19 +343,19 @@
                         </div>`;
                     }
 
-                    const timeDiv = `<div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${timeDisp}</div>`;
+                    // 1行目: ドット+時間+名前 (Flexでセンター揃え)
                     const rowBase = `
-                        <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
+                        <div class="timeline-item timeline-container">
                             <div class="timeline-line"></div>
-                            <div class="timeline-dot ${dotClass}">${dotIcon}</div>
-                            <div class="flex items-center gap-2">
-                                ${timeDiv}
+                            <div class="flex items-center w-full">
+                                <div class="timeline-dot ${dotClass}">${dotIcon}</div>
+                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0 mr-3">${timeDisp}</div>
                                 <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-gray-600 ml-1">${suffix}</span>${controls}</div>
                             </div>
                         </div>`;
-                    
                     html += rowBase;
 
+                    // 滞在情報 (次の行)
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
                         if (isEdit) {
@@ -377,23 +388,25 @@
                         }
                         
                         if (stayHtml) {
-                            html += `<div class="relative pl-8 pb-2 timeline-item"><div class="timeline-line"></div>${stayHtml}</div>`;
+                            html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
                         }
 
+                        // 出発の行 (ドット+時間+名前) - センター揃え
                         const depTime = item.depTimeStr || '00:00'; 
                         let depNameHtml = isEdit ? `<span class="text-gray-400">${item.name||'地点名'}</span>` : `<span class="font-bold text-gray-800">${item.name}</span>`;
 
                         html += `
-                        <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
+                        <div class="timeline-item timeline-container pb-3 min-h-[30px]">
                             <div class="timeline-line"></div>
-                            <div class="timeline-dot border-gray-400 text-gray-400">●</div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0">${depTime}</div>
+                            <div class="flex items-center w-full">
+                                <div class="timeline-dot border-gray-400 text-gray-400">●</div>
+                                <div class="w-10 text-right font-bold text-sm text-gray-800 flex-shrink-0 mr-3">${depTime}</div>
                                 <div class="flex-grow text-sm">${depNameHtml} <span class="font-bold text-gray-600">出発</span></div>
                             </div>
                         </div>`;
                     }
 
+                // --- MOVE ITEM ---
                 } else if (item.type === 'MOVE') {
                     if (item.mode === 'WAIT') return; 
 
@@ -407,27 +420,39 @@
                     if (isEdit) {
                         const label = modeLabels[mKey] + (isToll ? '<span class="toll-tag">(有料)</span>' : '');
                         moveContent = `
-                        <div class="flex items-center gap-2 text-sm pl-12">
+                        <div class="flex items-center gap-2 text-sm">
                             <span onclick="openTransportModal(${i})" class="select-box">${icon} ${label.replace(/<[^>]*>?/gm, '')} ${isToll?'(有料)':''} ▼</span>
                             <span class="text-gray-400">移動 ${dur}</span>
                         </div>`;
                     } else {
-                        // 道路名フィルター (川崎駅/東名 -> 東名高速道路)
+                        // --- 道路名フィルタリングロジック v5.1 ---
                         let roadsList = '';
                         if (item.roads && item.roads.length > 0) {
-                            // フィルタリングロジック強化
-                            const cleanRoads = item.roads.map(r => {
-                                // 1. スラッシュで分割して、最も道路名っぽいものを選ぶ
-                                const parts = r.split('/');
-                                // 長さやキーワードで判断
-                                let bestPart = parts.find(p => p.includes('高速') || p.includes('道') || p.includes('ライン')) || parts[0];
-                                // 2. 不要な修飾語を削除 (JCT, 出口, 方面など)
-                                return bestPart.replace(/(\(.+\)|JCT|出口|方面|ルート|進む)/g, '').trim();
-                            }).filter(r => r.length > 1); // 1文字は除外
+                            // 1. クリーニング (HTMLタグ、記号 < > の削除)
+                            let cleanRoads = item.roads.map(r => {
+                                let c = r.replace(/<[^>]*>/g, '') // HTMLタグ削除
+                                         .replace(/[<>]/g, '')     // < > 記号削除
+                                         .replace(/(\(.+\)|JCT|出口|方面|ルート|進む)/g, '') // ノイズ削除
+                                         .trim();
+                                return c;
+                            }).filter(r => r.length > 1);
                             
-                            // 重複排除
-                            const uniqueRoads = [...new Set(cleanRoads)];
-                            roadsList = uniqueRoads.map(r => `<div>${r}</div>`).join('');
+                            // 2. 重複と包含関係の整理 (長い名前を優先して残す)
+                            // "首都高速4号" と "首都高速4号新宿線" があったら、後者を残す
+                            let finalRoads = [];
+                            // 長さの降順でソート（長い方からチェック）
+                            cleanRoads.sort((a, b) => b.length - a.length);
+                            
+                            cleanRoads.forEach(road => {
+                                // 既に登録済みの道路名の「一部」として含まれているかチェック
+                                const isSubstring = finalRoads.some(existing => existing.includes(road));
+                                // 含まれていなければ採用（ただし、全く同じ名前はSetで弾くが、念のためここでもチェック）
+                                if (!isSubstring) {
+                                    finalRoads.push(road);
+                                }
+                            });
+
+                            roadsList = finalRoads.map(r => `<div>${r}</div>`).join('');
                         }
                         
                         let navBtn = '';
@@ -442,7 +467,7 @@
                         const tollTag = isToll ? `<span class="toll-tag">(有料)</span>` : '';
                         
                         moveContent = `
-                        <div class="pl-12">
+                        <div>
                             <div class="text-sm font-bold text-gray-600 flex items-center mb-1">
                                 ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>
                             </div>
@@ -456,15 +481,15 @@
                     }
 
                     html += `
-                    <div class="relative pb-4 timeline-item">
+                    <div class="timeline-item timeline-container pb-4">
                         <div class="timeline-line"></div>
-                        ${moveContent}
+                        <div class="pl-[36px]">${moveContent}</div>
                     </div>`;
                 }
             });
 
             html += `</div>`; // Close p-6
-            html += mapContainerHtml; // 地図コンテナをここに追加
+            html += mapContainerHtml; 
             html += `</div>`; // Close card
 
             // フッター
@@ -490,7 +515,7 @@
 
             document.getElementById('app-content').innerHTML = html + footer;
             
-            if(!isEdit) setTimeout(initFullMap, 500); 
+            if(!isEdit) setTimeout(initFullMap, 800); 
         }
 
         function printMode() {
@@ -647,8 +672,11 @@
                             let roads = [];
                             if (gMode === 'DRIVING') {
                                 leg.steps.forEach(s => {
-                                    if(s.instructions.includes('有料') || s.instructions.includes('高速') || s.instructions.includes('料金')) {
-                                        const m = s.instructions.match(/([^\s]+(?:高速|自動車道|ライン|スカイウェイ)[^\s]*)/);
+                                    // HTMLタグ除去後のテキストで判定
+                                    const txt = s.instructions.replace(/<[^>]*>/g, '');
+                                    if(txt.includes('有料') || txt.includes('高速') || txt.includes('料金')) {
+                                        // 道路名抽出ロジック（記号は後で消すが、抽出は広く取る）
+                                        const m = txt.match(/([^\s「」]+(?:高速|自動車道|ライン|スカイウェイ)[^\s「」]*)/);
                                         if(m) roads.push(m[1]);
                                     }
                                 });
@@ -687,7 +715,6 @@
                 if(stops[i].type === 'STOP') {
                     const prevMove = stops[i-1];
                     const prevStop = stops[i-2];
-                    // ★ 到着も丸め、出発も丸める
                     const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0);
                     const arrRounded = roundUp(arrRaw);
                     stops[i].arrTime = arrRounded;
