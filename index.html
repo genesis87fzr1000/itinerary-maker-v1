@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅のしおりメーカー v4.0</title>
+    <title>旅のしおりメーカー v4.1</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
         
         /* ドット (位置修正: 上に上げる) */
         .timeline-dot { 
-            position: absolute; left: 0; top: -3px; /* 下がっていたのを修正 */
+            position: absolute; left: 0; top: -3px;
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #94a3b8;
@@ -25,15 +25,9 @@
         
         /* 編集モード: 穴埋めスタイル */
         .input-hole {
-            display: inline-block;
-            border-bottom: 2px dashed #6366f1;
-            color: #4f46e5;
-            padding: 0 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: bold;
-            min-width: 60px; /* 少し広めに */
-            text-align: center;
+            display: inline-block; border-bottom: 2px dashed #6366f1; color: #4f46e5;
+            padding: 0 4px; cursor: pointer; transition: all 0.2s; font-weight: bold;
+            min-width: 60px; text-align: center;
         }
         .input-hole:hover { background-color: #eef2ff; border-bottom-style: solid; }
         .input-hole.filled { border-bottom: none; color: #1f2937; pointer-events: auto; text-align: left; min-width: auto; } 
@@ -53,8 +47,17 @@
         .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #666; }
 
         .modal-bg { background-color: rgba(0,0,0,0.5); }
-        .no-print { display: block; }
-        @media print { .no-print { display: none; } }
+        
+        /* 印刷用設定 (PDF化のため) */
+        @media print {
+            .no-print { display: none !important; }
+            body, #app-content { background-color: #fff; margin: 0; padding: 0; max-width: 100%; }
+            .shadow-xl, .shadow-lg, .shadow-sm { box-shadow: none !important; border: none !important; }
+            .bg-gradient-to-r { background: #4f46e5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: white !important; }
+            .timeline-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            /* ページ分割対策 */
+            .timeline-item, .relative { break-inside: avoid; }
+        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOStiNglNEGEnPnhDxJG0RSQqgJXVtUQw&libraries=places,geometry&callback=initMap" async defer></script>
 </head>
@@ -65,7 +68,7 @@
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v4.0</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v4.1</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -76,7 +79,7 @@
 
     <main id="app-content" class="w-full max-w-2xl p-2 sm:p-4"></main>
 
-    <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+    <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4">📍 地点・施設名の入力</h3>
             <div class="flex gap-2 mb-2">
@@ -94,7 +97,7 @@
         </div>
     </div>
 
-    <div id="modal-transport" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+    <div id="modal-transport" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4">🚗 移動手段の選択</h3>
             <select id="input-transport" class="w-full p-3 border rounded text-lg font-bold mb-6">
@@ -110,7 +113,7 @@
         </div>
     </div>
 
-    <div id="modal-stay" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+    <div id="modal-stay" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4">⏳ 滞在・基点設定</h3>
             <div class="mb-3">
@@ -141,7 +144,7 @@
         </div>
     </div>
 
-    <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+    <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4">📝 メモ入力</h3>
             <textarea id="input-memo" rows="3" class="w-full p-3 border rounded mb-4" placeholder="メモを入力..."></textarea>
@@ -152,7 +155,7 @@
         </div>
     </div>
 
-    <div id="modal-finalize" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+    <div id="modal-finalize" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4 text-indigo-700">🚀 仕上げ設定</h3>
             <div class="mb-3">
@@ -182,7 +185,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '4.0';
+        const APP_VERSION = '4.1';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -197,7 +200,7 @@
             if(mode === 'DASHBOARD') renderDashboard();
         };
 
-        // --- サンプルデータ (千葉のダム巡り) ---
+        // --- サンプルデータ ---
         function getSampleData() {
             const date = new Date(); date.setDate(date.getDate()+1);
             const ymd = date.toISOString().split('T')[0];
@@ -207,25 +210,18 @@
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'集合', memo:'', isBase:false, timeStr:'07:40' },
                     { type:'MOVE', mode:'WAIT', duration:0, dist:0 }, 
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'08:00', depTimeStr:'08:00' },
-                    
                     { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['東京湾アクアライン','館山自動車道'] },
                     { type:'STOP', name:'矢那川ダム 展望台', location:'矢那川ダム', confirmed:true, stayTime:20, stayReason:'矢那川ダム撮影', memo:'', isBase:false, timeStr:'08:50', depTimeStr:'09:10' },
-                    
                     { type:'MOVE', mode:'DRIVING_FREE', duration:49, dist:0 },
                     { type:'STOP', name:'長柄町都市農村交流センター', location:'長柄町都市農村交流センター', confirmed:true, stayTime:20, stayReason:'長柄ダム撮影', memo:'カード取得', isBase:false, timeStr:'10:00', depTimeStr:'10:20' },
-                    
                     { type:'MOVE', mode:'DRIVING_FREE', duration:27, dist:0 },
                     { type:'STOP', name:'高滝ダム記念館', location:'高滝ダム記念館', confirmed:true, stayTime:20, stayReason:'高滝ダム撮影', memo:'カード取得', isBase:false, timeStr:'10:50', depTimeStr:'11:10' },
-                    
                     { type:'MOVE', mode:'DRIVING_FREE', duration:50, dist:0 },
                     { type:'STOP', name:'割烹料理「天平」', location:'割烹料理天平', confirmed:true, stayTime:60, stayReason:'昼食', memo:'なめろうとさんが焼きがお薦め', isBase:true, timeStr:'12:00', depTimeStr:'13:00' },
-                    
                     { type:'MOVE', mode:'DRIVING_FREE', duration:51, dist:0 },
                     { type:'STOP', name:'片倉ダム', location:'片倉ダム', confirmed:true, stayTime:10, stayReason:'片倉ダム撮影', memo:'', isBase:false, timeStr:'14:00', depTimeStr:'14:10' },
-                    
                     { type:'MOVE', mode:'DRIVING_FREE', duration:10, dist:0 },
                     { type:'STOP', name:'亀山・片倉ダム管理事務所', location:'亀山・片倉ダム管理事務所', confirmed:true, stayTime:20, stayReason:'亀山ダム撮影', memo:'亀山・片倉・矢那川ダムカード取得', isBase:false, timeStr:'14:20', depTimeStr:'14:40' },
-                    
                     { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['館山自動車道','東京湾アクアライン'] },
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'15:30', depTimeStr:'' }
                 ]
@@ -275,14 +271,13 @@
                 </div>`;
         }
 
-        // タイムライン描画 (共通)
         function renderTimeline() {
             const isEdit = (mode === 'EDIT');
             const isSample = (mode === 'SAMPLE');
             const plan = editingPlan;
             
             let html = `
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] relative">
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] relative" id="print-area">
                     <div class="p-5 bg-gradient-to-r from-indigo-700 to-blue-700 text-white text-center">
                         <h2 class="text-xl font-extrabold mb-1">${plan.name}</h2>
                         ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80">${new Date().toLocaleDateString()} 作成</p>`}
@@ -295,7 +290,6 @@
                 const isLast = i === plan.stops.length - 1;
                 
                 if (item.type === 'STOP') {
-                    // --- 1. 到着/集合 行 ---
                     const timeDisp = item.timeStr || '00:00';
                     let suffix = '到着';
                     if (isFirst) suffix = '集合'; 
@@ -304,7 +298,6 @@
                     const dotClass = item.isBase ? 'border-red-500 text-red-500' : 'border-gray-400 text-gray-400';
                     const dotIcon = item.isBase ? '★' : '●';
 
-                    // 地点名
                     let nameHtml = '';
                     if (isEdit) {
                         if (isFirst) {
@@ -319,20 +312,19 @@
                         nameHtml = `<span class="font-bold text-gray-800">${item.name}</span>`;
                     }
 
-                    // 削除・移動ボタン (右端へ配置)
                     let controls = '';
                     if (isEdit && i > 2) {
                         controls = `
-                        <div class="ml-auto flex gap-1"> ${i > 4 ? `<button onclick="moveStop(${i},-1)" class="text-[10px] bg-gray-100 px-1 rounded hover:bg-gray-200">↑</button>` : ''}
+                        <div class="ml-auto flex gap-1 no-print">
+                            ${i > 4 ? `<button onclick="moveStop(${i},-1)" class="text-[10px] bg-gray-100 px-1 rounded hover:bg-gray-200">↑</button>` : ''}
                             ${!isLast ? `<button onclick="moveStop(${i},1)" class="text-[10px] bg-gray-100 px-1 rounded hover:bg-gray-200">↓</button>` : ''}
                             <button onclick="deleteStop(${i})" class="text-red-400 text-xs ml-1 font-bold">×</button>
                         </div>`;
                     }
 
                     if (isStart) {
-                         // Index 2: 出発専用
                          html += `
-                        <div class="relative pl-8 pb-3 min-h-[30px]">
+                        <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
                             <div class="timeline-line"></div>
                             <div class="timeline-dot ${dotClass}">${dotIcon}</div>
                             <div class="flex items-center gap-2">
@@ -341,9 +333,8 @@
                             </div>
                         </div>`;
                     } else {
-                        // 通常
                         html += `
-                        <div class="relative pl-8 pb-3 min-h-[30px]">
+                        <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
                             <div class="timeline-line"></div>
                             <div class="timeline-dot ${dotClass}">${dotIcon}</div>
                             <div class="flex items-center gap-2">
@@ -353,11 +344,10 @@
                         </div>`;
                     }
 
-                    // --- 2. 滞在情報 ---
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
                         if (isEdit) {
-                            const rVal = item.stayReason || '滞在理由入力'; // 初期表示
+                            const rVal = item.stayReason || '滞在理由入力';
                             const rCls = item.stayReason ? 'filled' : 'text-gray-400';
                             const tVal = item.stayTime || '00';
                             const mVal = item.memo || '📝 メモ入力';
@@ -386,15 +376,14 @@
                         }
                         
                         if (stayHtml) {
-                            html += `<div class="relative pl-8 pb-2"><div class="timeline-line"></div>${stayHtml}</div>`;
+                            html += `<div class="relative pl-8 pb-2 timeline-item"><div class="timeline-line"></div>${stayHtml}</div>`;
                         }
 
-                        // --- 3. 出発 行 ---
                         const depTime = item.depTimeStr || '00:00'; 
                         let depNameHtml = isEdit ? `<span class="text-gray-400">${item.name||'地点名'}</span>` : `<span class="font-bold text-gray-800">${item.name}</span>`;
 
                         html += `
-                        <div class="relative pl-8 pb-3 min-h-[30px]">
+                        <div class="relative pl-8 pb-3 min-h-[30px] timeline-item">
                             <div class="timeline-line"></div>
                             <div class="timeline-dot border-gray-400 text-gray-400">●</div>
                             <div class="flex items-center gap-2">
@@ -405,7 +394,6 @@
                     }
 
                 } else if (item.type === 'MOVE') {
-                    // --- 移動 行 ---
                     if (item.mode === 'WAIT') return; 
 
                     const mKey = item.mode;
@@ -416,7 +404,6 @@
                     
                     let moveContent = '';
                     if (isEdit) {
-                        // 編集時
                         const label = modeLabels[mKey] + (isToll ? '<span class="toll-tag">(有料)</span>' : '');
                         moveContent = `
                         <div class="flex items-center gap-2 text-sm pl-12">
@@ -424,15 +411,12 @@
                             <span class="text-gray-400">移動 ${dur}</span>
                         </div>`;
                     } else {
-                        // 完成・サンプル画面 (指定のレイアウトへ変更)
                         let roadsList = '';
                         if (item.roads && item.roads.length > 0) {
-                            // 道路名を短くフィルタリング
-                            const cleanRoads = item.roads.map(r => r.replace(/(高速自動車国道|自動車道|高速道路)/g, '')); // 簡易短縮
+                            const cleanRoads = item.roads.map(r => r.replace(/(高速自動車国道|自動車道|高速道路)/g, ''));
                             roadsList = cleanRoads.map(r => `<div>${r}</div>`).join('');
                         }
                         
-                        // ナビボタン
                         let navBtn = '';
                         if (plan.stops[i-1] && plan.stops[i+1]) {
                              const origin = encodeURIComponent(plan.stops[i-1].location);
@@ -459,7 +443,7 @@
                     }
 
                     html += `
-                    <div class="relative pb-4">
+                    <div class="relative pb-4 timeline-item">
                         <div class="timeline-line"></div>
                         ${moveContent}
                     </div>`;
@@ -469,26 +453,26 @@
             // フッター
             let footer = '';
             if (isSample) {
-                footer = `<div class="mt-8 text-center pb-8"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
+                footer = `<div class="mt-8 text-center pb-8 no-print"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
             } else if (isEdit) {
                 footer = `
-                <div class="mt-8 space-y-4 text-center pb-8">
+                <div class="mt-8 space-y-4 text-center pb-8 no-print">
                     <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
                     <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
                 </div>`;
-            } else { // RESULT
+            } else { // RESULT (Completed)
                 footer = `
                 <div class="mt-8 no-print space-y-4 pb-8">
                     <div class="bg-gray-100 rounded-xl h-64 w-full border border-gray-200" id="full-map-area"></div>
                     <div class="flex gap-2">
-                        <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">修正する</button>
-                        <button onclick="saveCurrentPlan()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl">保存する</button>
+                        <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300">修正する</button>
+                        <button onclick="window.print()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">📄 PDF / 印刷</button>
+                        <button onclick="saveCurrentPlan()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700">保存する</button>
                     </div>
                 </div>`;
             }
 
             document.getElementById('app-content').innerHTML = html + footer + `</div></div>`;
-            
             if(!isEdit && !isSample) setTimeout(initFullMap, 500); 
         }
 
@@ -501,24 +485,12 @@
                 id: 'plan_' + Date.now(), name: '新規旅程プラン', baseTime: sample.baseTime, rounding: 0,
                 stops: sample.stops.map(s => {
                     if (s.type === 'MOVE') return { ...s, duration: 0, roads:[] };
-                    
-                    // ★要望対応: サンプルの具体的な内容をクリア（昼食となめろう以外）
-                    let r = '';
-                    if (s.stayReason === '昼食') r = '昼食';
-                    
-                    let m = '';
-                    if (s.memo && s.memo.includes('なめろう')) m = s.memo;
-
-                    return { 
-                        ...s, name:'', location:'', confirmed:false, 
-                        stayReason: r, memo: m, 
-                        timeStr:'00:00', depTimeStr:'00:00' 
-                    };
+                    let r = ''; if (s.stayReason === '昼食') r = '昼食';
+                    let m = ''; if (s.memo && s.memo.includes('なめろう')) m = s.memo;
+                    return { ...s, name:'', location:'', confirmed:false, stayReason:r, memo:m, timeStr:'00:00', depTimeStr:'00:00' };
                 })
             };
-            // 集合と出発の連携初期化
             editingPlan.stops[0].name = '（出発地と同じ）';
-            
             mode = 'EDIT'; renderTimeline();
         }
         function startNewEdit() { copySampleToEdit(); }
@@ -528,13 +500,10 @@
             editingPlan.stops.push({ type:'STOP', name:'', location:'', confirmed:false, stayTime:20, stayReason:'', memo:'', isBase:false, timeStr:'00:00' });
             renderTimeline();
         }
-        
         function deleteStop(idx) {
             if(idx <= 2 || idx === editingPlan.stops.length-1) { alert('この地点は削除できません'); return; }
-            editingPlan.stops.splice(idx-1, 2); 
-            renderTimeline();
+            editingPlan.stops.splice(idx-1, 2); renderTimeline();
         }
-
         function moveStop(idx, dir) {
             if (idx <= 2) return; 
             const moveIdx = idx - 1; 
@@ -550,7 +519,7 @@
             renderTimeline();
         }
 
-        // --- Modal Logic (変更なし) ---
+        // --- Modal ---
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -602,24 +571,14 @@
             renderTimeline();
         }
 
-        function openTransportModal(idx) {
-            editingIndex = idx;
-            document.getElementById('input-transport').value = editingPlan.stops[idx].mode;
-            openModal('modal-transport');
-        }
-        function confirmTransport() {
-            editingPlan.stops[editingIndex].mode = document.getElementById('input-transport').value;
-            closeModal('modal-transport');
-            renderTimeline();
-        }
-
-        function openStayModal(idx) {
-            editingIndex = idx;
-            const item = editingPlan.stops[idx];
-            document.getElementById('input-stay-reason').value = item.stayReason;
-            document.getElementById('input-stay-time').value = item.stayTime;
-            document.getElementById('input-is-base').checked = item.isBase;
-            openModal('modal-stay');
+        function openTransportModal(idx) { editingIndex = idx; document.getElementById('input-transport').value = editingPlan.stops[idx].mode; openModal('modal-transport'); }
+        function confirmTransport() { editingPlan.stops[editingIndex].mode = document.getElementById('input-transport').value; closeModal('modal-transport'); renderTimeline(); }
+        function openStayModal(idx) { 
+            editingIndex = idx; const item = editingPlan.stops[idx]; 
+            document.getElementById('input-stay-reason').value = item.stayReason; 
+            document.getElementById('input-stay-time').value = item.stayTime; 
+            document.getElementById('input-is-base').checked = item.isBase; 
+            openModal('modal-stay'); 
         }
         function confirmStay() {
             const item = editingPlan.stops[editingIndex];
@@ -629,27 +588,16 @@
                 editingPlan.stops.forEach(s => { if(s.type==='STOP') s.isBase = false; });
                 item.isBase = true;
             } else { item.isBase = false; }
-            closeModal('modal-stay');
-            renderTimeline();
+            closeModal('modal-stay'); renderTimeline();
         }
-
-        function openMemoModal(idx) {
-            editingIndex = idx;
-            document.getElementById('input-memo').value = editingPlan.stops[idx].memo;
-            openModal('modal-memo');
-        }
-        function confirmMemo() {
-            editingPlan.stops[editingIndex].memo = document.getElementById('input-memo').value;
-            closeModal('modal-memo');
-            renderTimeline();
-        }
+        function openMemoModal(idx) { editingIndex = idx; document.getElementById('input-memo').value = editingPlan.stops[idx].memo; openModal('modal-memo'); }
+        function confirmMemo() { editingPlan.stops[editingIndex].memo = document.getElementById('input-memo').value; closeModal('modal-memo'); renderTimeline(); }
 
         function openFinalizeModal() {
             const invalid = editingPlan.stops.filter(s => s.type==='STOP' && !s.confirmed && s.name !== '（出発地と同じ）');
             if(invalid.length > 0) { alert('未確定の地点があります'); return; }
             const hasBase = editingPlan.stops.some(s => s.type==='STOP' && s.isBase);
             if(!hasBase) { alert('時間の基点（★）が設定されていません'); return; }
-
             const d = new Date(); d.setDate(d.getDate()+1); d.setHours(8,0,0,0);
             const iso = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
             document.getElementById('final-base-time').value = iso;
@@ -660,31 +608,20 @@
             editingPlan.name = document.getElementById('final-plan-name').value;
             editingPlan.baseTime = document.getElementById('final-base-time').value;
             editingPlan.rounding = parseInt(document.getElementById('final-rounding').value);
-            
             closeModal('modal-finalize');
             document.getElementById('app-content').innerHTML = '<div class="text-center p-20"><div class="text-3xl animate-bounce">🚗</div><div class="mt-4 font-bold text-gray-500">ルート計算中...</div></div>';
-
             const ds = new google.maps.DirectionsService();
             for(let i=0; i<editingPlan.stops.length; i++) {
                 const item = editingPlan.stops[i];
                 if (item.type === 'MOVE') {
                     if (item.mode === 'WAIT') continue; 
-                    
-                    const start = editingPlan.stops[i-1].location;
-                    const end = editingPlan.stops[i+1].location;
-                    let gMode = 'DRIVING';
-                    let avoidTolls = false;
-                    if(item.mode === 'DRIVING_FREE') avoidTolls = true;
-                    else if(item.mode === 'DRIVING_TOLL') avoidTolls = false;
-                    else gMode = item.mode;
-
+                    const start = editingPlan.stops[i-1].location; const end = editingPlan.stops[i+1].location;
+                    let gMode = 'DRIVING'; let avoidTolls = false;
+                    if(item.mode === 'DRIVING_FREE') avoidTolls = true; else if(item.mode === 'DRIVING_TOLL') avoidTolls = false; else gMode = item.mode;
                     try {
-                        const res = await new Promise(resolve => {
-                            ds.route({ origin: start, destination: end, travelMode: gMode, avoidTolls: avoidTolls }, (r, s) => resolve(s==='OK'?r:null));
-                        });
+                        const res = await new Promise(resolve => ds.route({ origin: start, destination: end, travelMode: gMode, avoidTolls: avoidTolls }, (r, s) => resolve(s==='OK'?r:null)));
                         if (res) {
-                            const leg = res.routes[0].legs[0];
-                            item.duration = Math.ceil(leg.duration.value / 60);
+                            const leg = res.routes[0].legs[0]; item.duration = Math.ceil(leg.duration.value / 60);
                             let roads = [];
                             if (gMode === 'DRIVING') {
                                 leg.steps.forEach(s => {
@@ -700,8 +637,7 @@
                 }
             }
             calculateSchedule();
-            mode = 'RESULT';
-            renderTimeline();
+            mode = 'RESULT'; renderTimeline();
         }
 
         function calculateSchedule() {
@@ -723,17 +659,22 @@
 
             let t = new Date(editingPlan.baseTime);
             stops[baseIdx].arrTime = t; 
-            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime));
+            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime)); // Base Dep Rounding
             
+            // Forward (Base -> End)
             for(let i=baseIdx+1; i<stops.length; i++) {
                 if(stops[i].type === 'STOP') {
                     const prevMove = stops[i-1];
                     const prevStop = stops[i-2];
-                    const arr = addMin(prevStop.depTime, prevMove.duration || 0);
-                    stops[i].arrTime = arr;
-                    stops[i].depTime = roundUp(addMin(arr, stops[i].stayTime));
+                    // ★修正ポイント: 到着時間も丸めて、スケジュール全体をグリッドに乗せる
+                    const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0);
+                    const arrRounded = roundUp(arrRaw); // Arrival Rounding
+                    stops[i].arrTime = arrRounded;
+                    stops[i].depTime = roundUp(addMin(arrRounded, stops[i].stayTime)); // Departure Rounding
                 }
             }
+            
+            // Backward (Base -> Start)
             t = stops[baseIdx].arrTime;
             for(let i=baseIdx-1; i>=0; i--) {
                 if(stops[i].type === 'STOP') {
@@ -744,17 +685,12 @@
                         stops[i].arrTime = addMin(stops[i].depTime, -20);
                     } else {
                         const depRaw = addMin(nextStop.arrTime, -(nextMove.duration||0));
-                        stops[i].depTime = roundDown(depRaw);
+                        stops[i].depTime = roundDown(depRaw); // Departure Rounding (Down)
                         stops[i].arrTime = addMin(stops[i].depTime, -stops[i].stayTime);
                     }
                 }
             }
-            stops.forEach(s => {
-                if(s.type==='STOP') {
-                    s.timeStr = fmt(s.arrTime);
-                    s.depTimeStr = fmt(s.depTime);
-                }
-            });
+            stops.forEach(s => { if(s.type==='STOP') { s.timeStr = fmt(s.arrTime); s.depTimeStr = fmt(s.depTime); } });
         }
 
         function initFullMap() {
@@ -771,40 +707,22 @@
         function saveCurrentPlan() {
             editingPlan.updatedAt = new Date().toISOString();
             const idx = savedPlans.findIndex(p => p.id === editingPlan.id);
-            if(idx >= 0) savedPlans[idx] = editingPlan;
-            else savedPlans.unshift(editingPlan);
+            if(idx >= 0) savedPlans[idx] = editingPlan; else savedPlans.unshift(editingPlan);
             localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans));
-            alert('保存しました');
-            renderDashboard();
+            alert('保存しました'); renderDashboard();
         }
         function deletePlan(i) { if(!confirm('削除しますか？')) return; savedPlans.splice(i, 1); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); renderDashboard(); }
         function openPlan(i) { editingPlan = savedPlans[i]; mode = 'RESULT'; renderTimeline(); }
         function checkUrlImport() {
-            const p = new URLSearchParams(location.search);
-            const d = p.get('d');
-            if(d) {
-                try {
-                    const json = LZString.decompressFromEncodedURIComponent(d);
-                    if(json) {
-                        const plan = JSON.parse(json);
-                        plan.id = 'import_'+Date.now();
-                        savedPlans.unshift(plan);
-                        localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans));
-                        alert('共有プランを読み込みました');
-                        history.replaceState(null, '', location.pathname);
-                    }
-                } catch(e){}
-            }
+            const p = new URLSearchParams(location.search); const d = p.get('d');
+            if(d) { try { const json = LZString.decompressFromEncodedURIComponent(d); if(json) { const plan = JSON.parse(json); plan.id = 'import_'+Date.now(); savedPlans.unshift(plan); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); alert('共有プランを読み込みました'); history.replaceState(null, '', location.pathname); } } catch(e){} }
         }
         function sharePlan(i) {
-            const plan = savedPlans[i];
-            const cleanPlan = JSON.parse(JSON.stringify(plan));
+            const plan = savedPlans[i]; const cleanPlan = JSON.parse(JSON.stringify(plan));
             cleanPlan.stops.forEach(s => { delete s.arrTime; delete s.depTime; });
-            const json = JSON.stringify(cleanPlan);
-            const compressed = LZString.compressToEncodedURIComponent(json);
+            const json = JSON.stringify(cleanPlan); const compressed = LZString.compressToEncodedURIComponent(json);
             const url = `${location.origin}${location.pathname}?d=${compressed}`;
-            if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>alert('共有URLをコピーしました'));
-            else prompt('URLをコピー:', url);
+            if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>alert('共有URLをコピーしました')); else prompt('URLをコピー:', url);
         }
     </script>
 </body>
