@@ -2,16 +2,33 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>旅のしおりメーカー v5.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>旅のしおりメーカー v5.2</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f3f4f6; 
+            color: #1f2937;
+            /* 広告枠の分だけ余白を確保 */
+            padding-top: 70px; 
+            padding-bottom: 90px;
+        }
         
-        /* タイムライン線: ドットの中心を通るように配置 */
+        /* 広告枠スタイル */
+        .ad-banner {
+            position: fixed; left: 0; right: 0; z-index: 9999;
+            background-color: #e5e7eb; color: #9ca3af;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold; border: 1px dashed #cbd5e1;
+        }
+        .ad-top { top: 0; height: 60px; border-bottom-width: 1px; }
+        .ad-bottom { bottom: 0; height: 60px; border-top-width: 1px; }
+
+        /* タイムライン線 */
         .timeline-container { position: relative; padding-left: 20px; }
         .timeline-line { 
             position: absolute; left: 11px; top: 24px; bottom: -10px; 
@@ -19,7 +36,7 @@
         }
         .timeline-item:last-child .timeline-line { display: none; }
         
-        /* ドット: Flexボックス内で自然に配置し、ズレを防ぐ */
+        /* ドット */
         .timeline-dot { 
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
@@ -27,61 +44,59 @@
             flex-shrink: 0; margin-right: 12px; position: relative;
         }
         
-        /* 編集モード: 穴埋めスタイル */
+        /* 編集パーツ */
         .input-hole {
             display: inline-block; border-bottom: 2px dashed #6366f1; color: #4f46e5;
             padding: 0 4px; cursor: pointer; transition: all 0.2s; font-weight: bold;
             min-width: 60px; text-align: center;
         }
-        .input-hole:hover { background-color: #eef2ff; border-bottom-style: solid; }
         .input-hole.filled { border-bottom: none; color: #1f2937; pointer-events: auto; text-align: left; min-width: auto; } 
-        .input-hole.filled:hover { color: #4f46e5; }
         .input-readonly { color: #1f2937; border-bottom: none; pointer-events: none; }
-
-        /* 編集モード: 選択ボックス風 */
         .select-box {
             display: inline-flex; align-items: center; justify-content: center;
             border: 1px solid #cbd5e1; background-color: #fff;
             padding: 2px 8px; border-radius: 4px; cursor: pointer;
             font-size: 0.75rem; color: #64748b;
         }
-        .select-box:hover { border-color: #6366f1; color: #4f46e5; }
-
-        /* 完成画面: 有料タグ */
         .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #666; }
-
         .modal-bg { background-color: rgba(0,0,0,0.5); }
         
-        /* 印刷用設定 */
+        /* 印刷用設定 (スマホ対応強化) */
         @media print {
-            .no-print { display: none !important; }
-            body, #app-content { background-color: #fff !important; margin: 0; padding: 0; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print, .ad-banner, header { display: none !important; }
+            body { 
+                background-color: #fff !important; 
+                padding: 0 !important; margin: 0 !important; 
+                width: 100%; 
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #app-content { padding: 0 !important; max-width: none !important; }
             .shadow-xl, .shadow-lg, .shadow-sm { box-shadow: none !important; border: none !important; }
             .bg-gradient-to-r { background: #4f46e5 !important; color: white !important; }
-            /* スマホ地図バグ対策: 固定サイズと背景白強制 */
-            #full-map-area { 
-                height: 400px !important; 
-                width: 100% !important; 
-                border: 1px solid #ccc; 
-                background-color: #fff !important;
-                position: relative;
-                z-index: 10;
-            }
-            .gm-style img { max-width: none !important; }
             /* ページ分割対策 */
-            .timeline-item { break-inside: avoid; page-break-inside: avoid; }
+            .timeline-item, .card { break-inside: avoid; page-break-inside: avoid; }
+            /* 地図エリア */
+            #full-map-area { 
+                height: 300px !important; width: 100% !important; 
+                border: 1px solid #ddd !important; 
+                break-inside: avoid;
+            }
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOStiNglNEGEnPnhDxJG0RSQqgJXVtUQw&libraries=places,geometry&callback=initMap" async defer></script>
 </head>
-<body class="pb-20 flex flex-col items-center min-h-screen">
+<body class="flex flex-col items-center min-h-screen">
 
-    <header class="w-full bg-indigo-700 text-white shadow-md sticky top-0 z-40 no-print">
+    <div class="ad-banner ad-top no-print">
+        <span>広告枠 (Top) 320x50 / 320x100</span>
+    </div>
+
+    <header class="w-full bg-indigo-700 text-white shadow-md z-40 no-print" style="position: sticky; top: 60px;">
         <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-end">
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.1</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.2</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -92,8 +107,12 @@
 
     <main id="app-content" class="w-full max-w-2xl p-2 sm:p-4"></main>
 
+    <div class="ad-banner ad-bottom no-print">
+        <span>広告枠 (Bottom) 300x250 / 320x50</span>
+    </div>
+
     <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
             <h3 class="text-lg font-bold mb-4">📍 地点・施設名の入力</h3>
             <div class="flex gap-2 mb-2">
                 <input type="text" id="input-loc-name" list="saved-locations-list" class="flex-1 p-2 border rounded font-bold" placeholder="例: 東京駅">
@@ -198,7 +217,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '5.1';
+        const APP_VERSION = '5.2';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -297,7 +316,7 @@
                  </div>` : '';
 
             let html = `
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] relative" id="print-area">
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] card">
                     <div class="p-5 bg-gradient-to-r from-indigo-700 to-blue-700 text-white text-center print:text-black print:bg-white">
                         <h2 class="text-xl font-extrabold mb-1">${plan.name}</h2>
                         ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full no-print">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80 print:text-gray-600">${new Date().toLocaleDateString()} 作成</p>`}
@@ -343,7 +362,7 @@
                         </div>`;
                     }
 
-                    // 1行目: ドット+時間+名前 (Flexでセンター揃え)
+                    // 1行目
                     const rowBase = `
                         <div class="timeline-item timeline-container">
                             <div class="timeline-line"></div>
@@ -355,7 +374,7 @@
                         </div>`;
                     html += rowBase;
 
-                    // 滞在情報 (次の行)
+                    // 滞在情報
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
                         if (isEdit) {
@@ -391,7 +410,7 @@
                             html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
                         }
 
-                        // 出発の行 (ドット+時間+名前) - センター揃え
+                        // 出発の行
                         const depTime = item.depTimeStr || '00:00'; 
                         let depNameHtml = isEdit ? `<span class="text-gray-400">${item.name||'地点名'}</span>` : `<span class="font-bold text-gray-800">${item.name}</span>`;
 
@@ -425,34 +444,10 @@
                             <span class="text-gray-400">移動 ${dur}</span>
                         </div>`;
                     } else {
-                        // --- 道路名フィルタリングロジック v5.1 ---
+                        // --- 道路名フィルタリングロジック v5.2 ---
                         let roadsList = '';
                         if (item.roads && item.roads.length > 0) {
-                            // 1. クリーニング (HTMLタグ、記号 < > の削除)
-                            let cleanRoads = item.roads.map(r => {
-                                let c = r.replace(/<[^>]*>/g, '') // HTMLタグ削除
-                                         .replace(/[<>]/g, '')     // < > 記号削除
-                                         .replace(/(\(.+\)|JCT|出口|方面|ルート|進む)/g, '') // ノイズ削除
-                                         .trim();
-                                return c;
-                            }).filter(r => r.length > 1);
-                            
-                            // 2. 重複と包含関係の整理 (長い名前を優先して残す)
-                            // "首都高速4号" と "首都高速4号新宿線" があったら、後者を残す
-                            let finalRoads = [];
-                            // 長さの降順でソート（長い方からチェック）
-                            cleanRoads.sort((a, b) => b.length - a.length);
-                            
-                            cleanRoads.forEach(road => {
-                                // 既に登録済みの道路名の「一部」として含まれているかチェック
-                                const isSubstring = finalRoads.some(existing => existing.includes(road));
-                                // 含まれていなければ採用（ただし、全く同じ名前はSetで弾くが、念のためここでもチェック）
-                                if (!isSubstring) {
-                                    finalRoads.push(road);
-                                }
-                            });
-
-                            roadsList = finalRoads.map(r => `<div>${r}</div>`).join('');
+                            roadsList = item.roads.map(r => `<div>${r}</div>`).join('');
                         }
                         
                         let navBtn = '';
@@ -461,7 +456,7 @@
                              const dest = encodeURIComponent(plan.stops[i+1].location);
                              const tmode = (mKey.includes('DRIVING')) ? 'driving' : (mKey==='WALKING'?'walking':'bicycling');
                              const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${tmode}`;
-                             navBtn = `<a href="${url}" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 no-print inline-flex items-center gap-1 font-bold">🧭 ナビ</a>`;
+                             navBtn = `<a href="${url}" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 no-print inline-flex items-center gap-1 font-bold whitespace-nowrap">🧭 ナビ</a>`;
                         }
                         
                         const tollTag = isToll ? `<span class="toll-tag">(有料)</span>` : '';
@@ -472,8 +467,8 @@
                                 ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>
                             </div>
                             <div class="flex gap-4 items-start">
-                                <div class="min-w-[60px] pt-1">${navBtn}</div>
-                                <div class="text-xs text-gray-500 leading-relaxed">
+                                <div class="flex-shrink-0 pt-1">${navBtn}</div>
+                                <div class="text-xs text-gray-500 leading-relaxed min-w-0 break-words">
                                     ${roadsList}
                                 </div>
                             </div>
@@ -488,9 +483,9 @@
                 }
             });
 
-            html += `</div>`; // Close p-6
+            html += `</div>`; 
             html += mapContainerHtml; 
-            html += `</div>`; // Close card
+            html += `</div>`; 
 
             // フッター
             let footer = '';
@@ -507,7 +502,7 @@
                 <div class="mt-8 no-print space-y-4 pb-8">
                     <div class="flex gap-2">
                         <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300">修正する</button>
-                        <button onclick="printMode()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">📄 PDF / 印刷</button>
+                        <button onclick="window.print()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">📄 PDF / 印刷</button>
                         <button onclick="saveCurrentPlan()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700">保存する</button>
                     </div>
                 </div>`;
@@ -516,11 +511,6 @@
             document.getElementById('app-content').innerHTML = html + footer;
             
             if(!isEdit) setTimeout(initFullMap, 800); 
-        }
-
-        function printMode() {
-            alert('PDF保存のヒント:\n印刷画面で「送信先」を「PDFに保存」にしてください。\nきれいな色で印刷するには「背景のグラフィック」にチェックを入れてください。');
-            window.print();
         }
 
         // --- ロジック ---
@@ -672,15 +662,41 @@
                             let roads = [];
                             if (gMode === 'DRIVING') {
                                 leg.steps.forEach(s => {
-                                    // HTMLタグ除去後のテキストで判定
-                                    const txt = s.instructions.replace(/<[^>]*>/g, '');
-                                    if(txt.includes('有料') || txt.includes('高速') || txt.includes('料金')) {
-                                        // 道路名抽出ロジック（記号は後で消すが、抽出は広く取る）
-                                        const m = txt.match(/([^\s「」]+(?:高速|自動車道|ライン|スカイウェイ)[^\s「」]*)/);
-                                        if(m) roads.push(m[1]);
+                                    // 1. 生の指示テキストを取得 (例: "右折して核都市広域幹線道路/K7に入る有料区間")
+                                    let txt = s.instructions.replace(/<[^>]*>/g, '');
+                                    
+                                    // 2. 有料・高速関連のステップのみを対象にする (一般道の「右折」などを拾いすぎないように)
+                                    if(txt.includes('有料') || txt.includes('高速') || txt.includes('自動車道') || txt.includes('インター') || txt.includes('JCT')) {
+                                        
+                                        // 3. ゴミ掃除: 「右折して」「に入る」などを消す
+                                        txt = txt.replace(/(右折|左折|直進|斜め|方向)して/g, '')
+                                                 .replace(/(に入る|を直進|有料区間|分岐を|出口|方面|JCT|ルート|進む)/g, '')
+                                                 .trim();
+                                        
+                                        // 4. 「/」で分割
+                                        const parts = txt.split('/');
+                                        
+                                        parts.forEach(p => {
+                                            // 5. 各パーツのクリーニング: K1, C2, E17 などの高速ナンバリングや、2文字以下のゴミを除去
+                                            let clean = p.replace(/[KCE]\d+/g, '').trim(); 
+                                            // 「首都高」などの略称補正があればここで行うが、今回はシンプルに
+                                            if (clean.length > 2) { 
+                                                roads.push(clean);
+                                            }
+                                        });
                                     }
                                 });
-                                item.roads = [...new Set(roads)];
+                                // 重複排除と包含関係整理 (長い名前優先)
+                                let unique = [...new Set(roads)];
+                                unique.sort((a,b) => b.length - a.length);
+                                let final = [];
+                                unique.forEach(r => {
+                                    // 既にリストにある長い名前に含まれていなければ採用
+                                    if(!final.some(existing => existing.includes(r))) {
+                                        final.push(r);
+                                    }
+                                });
+                                item.roads = final;
                             }
                         } else { item.duration = 0; }
                     } catch(e) { item.duration = 0; }
