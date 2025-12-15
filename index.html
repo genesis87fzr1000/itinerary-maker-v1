@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.2</title>
+    <title>旅のしおりメーカー v5.3</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,14 +13,14 @@
             font-family: 'Inter', sans-serif; 
             background-color: #f3f4f6; 
             color: #1f2937;
-            /* 広告枠の分だけ余白を確保 */
+            /* 広告枠とボタンの干渉を防ぐため余白を拡大 */
             padding-top: 70px; 
-            padding-bottom: 90px;
+            padding-bottom: 120px; 
         }
         
         /* 広告枠スタイル */
         .ad-banner {
-            position: fixed; left: 0; right: 0; z-index: 9999;
+            position: fixed; left: 0; right: 0; z-index: 50; /* z-indexを適正化 */
             background-color: #e5e7eb; color: #9ca3af;
             display: flex; align-items: center; justify-content: center;
             font-size: 12px; font-weight: bold; border: 1px dashed #cbd5e1;
@@ -96,7 +96,7 @@
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.2</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.3</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -217,7 +217,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '5.2';
+        const APP_VERSION = '5.3';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -231,6 +231,12 @@
             checkUrlImport();
             if(mode === 'DASHBOARD') renderDashboard();
         };
+
+        // --- Print Function ---
+        function triggerPrint() {
+            window.print();
+            return false;
+        }
 
         // --- サンプルデータ ---
         function getSampleData() {
@@ -434,6 +440,7 @@
                     const icon = { 'DRIVING_FREE':'🚗', 'DRIVING_TOLL':'🚗', 'WALKING':'🚶', 'BICYCLING':'🚲' }[mKey] || '🚗';
                     const dur = item.duration ? `${item.duration}分` : '00分';
                     const isToll = (mKey === 'DRIVING_TOLL');
+                    const trafficWarning = (mKey.includes('DRIVING')) ? `<span class="text-[10px] text-gray-400 ml-1 font-normal">(渋滞含まず)</span>` : '';
                     
                     let moveContent = '';
                     if (isEdit) {
@@ -444,7 +451,7 @@
                             <span class="text-gray-400">移動 ${dur}</span>
                         </div>`;
                     } else {
-                        // --- 道路名フィルタリングロジック v5.2 ---
+                        // --- 道路名フィルタリングロジック v5.3 (Clean) ---
                         let roadsList = '';
                         if (item.roads && item.roads.length > 0) {
                             roadsList = item.roads.map(r => `<div>${r}</div>`).join('');
@@ -455,6 +462,7 @@
                              const origin = encodeURIComponent(plan.stops[i-1].location);
                              const dest = encodeURIComponent(plan.stops[i+1].location);
                              const tmode = (mKey.includes('DRIVING')) ? 'driving' : (mKey==='WALKING'?'walking':'bicycling');
+                             // Google Maps Navigation URL format
                              const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${tmode}`;
                              navBtn = `<a href="${url}" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 no-print inline-flex items-center gap-1 font-bold whitespace-nowrap">🧭 ナビ</a>`;
                         }
@@ -464,7 +472,7 @@
                         moveContent = `
                         <div>
                             <div class="text-sm font-bold text-gray-600 flex items-center mb-1">
-                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>
+                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>${trafficWarning}
                             </div>
                             <div class="flex gap-4 items-start">
                                 <div class="flex-shrink-0 pt-1">${navBtn}</div>
@@ -498,11 +506,12 @@
                     <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
                 </div>`;
             } else { // RESULT
+                // スマホ対応: ontouchstart, onclick両対応
                 footer = `
                 <div class="mt-8 no-print space-y-4 pb-8">
                     <div class="flex gap-2">
                         <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300">修正する</button>
-                        <button onclick="window.print()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">📄 PDF / 印刷</button>
+                        <button ontouchstart="triggerPrint()" onclick="triggerPrint()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 active:bg-green-800 shadow-lg">📄 PDF / 印刷</button>
                         <button onclick="saveCurrentPlan()" class="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700">保存する</button>
                     </div>
                 </div>`;
@@ -662,35 +671,53 @@
                             let roads = [];
                             if (gMode === 'DRIVING') {
                                 leg.steps.forEach(s => {
-                                    // 1. 生の指示テキストを取得 (例: "右折して核都市広域幹線道路/K7に入る有料区間")
-                                    let txt = s.instructions.replace(/<[^>]*>/g, '');
+                                    // 1. HTML除去 & 基本整形
+                                    let txt = s.instructions.replace(/<[^>]*>/g, '').trim();
                                     
-                                    // 2. 有料・高速関連のステップのみを対象にする (一般道の「右折」などを拾いすぎないように)
-                                    if(txt.includes('有料') || txt.includes('高速') || txt.includes('自動車道') || txt.includes('インター') || txt.includes('JCT')) {
+                                    // 2. 超強力クリーニング (動詞・助詞・指示語の削除)
+                                    // "右折して" "ランプを進んで" "の標識に従う" "を出る" "車線を使用して" "有料区間"
+                                    // これらを空文字に置換してから "/" で割る
+                                    txt = txt.replace(/(右折|左折|直進|斜め|方向)して/g, '')
+                                             .replace(/(ランプ|分岐)を(進んで|進む)?/g, '') // ランプを進んで
+                                             .replace(/の?標識に(従う)?/g, '') // の標識に従う
+                                             .replace(/([のへに])?入る/g, '')
+                                             .replace(/出口(を出る|へ)?/g, '')
+                                             .replace(/((右|左)車線を?)?使用して/g, '') // 左車線を使用して
+                                             .replace(/(有料区間|ルート|JCT|IC|インター|方面)/g, '') // 有料区間等は削除（名前だけ残す）
+                                             .replace(/(を|から)出る/g, '') // 〜を出る
+                                             .replace(/[をにへ]/g, ' ') // 助詞をスペースに置換
+                                             .trim();
+                                    
+                                    // 3. 分割 (スラッシュ、スペース、読点)
+                                    const parts = txt.split(/[\/\s、]+/);
+                                    
+                                    parts.forEach(p => {
+                                        // 4. 個別パーツのフィルタリング
+                                        // "県道294号" → 残す / "右折" → 消す (残骸処理)
+                                        let clean = p.replace(/[KCE]\d+/g, '').trim(); // ナンバリング削除
                                         
-                                        // 3. ゴミ掃除: 「右折して」「に入る」などを消す
-                                        txt = txt.replace(/(右折|左折|直進|斜め|方向)して/g, '')
-                                                 .replace(/(に入る|を直進|有料区間|分岐を|出口|方面|JCT|ルート|進む)/g, '')
-                                                 .trim();
+                                        // 2文字以下、かつ「線」「道」「通り」を含まないものはノイズとみなして捨てる
+                                        // ただしアルファベット含む短い名前（もしあれば）は考慮必要だが今回は無視
+                                        const isLikelyRoad = (clean.length > 2) || clean.includes('線') || clean.includes('道') || clean.includes('橋');
                                         
-                                        // 4. 「/」で分割
-                                        const parts = txt.split('/');
+                                        // "昭和島" などの地名だけが残るケースを除外するため、
+                                        // 確実に道路っぽいキーワードが入っているかチェック（オプション）
+                                        // 今回は「県道」「都道」の数字だけ残すなら "294号" となるが、
+                                        // User wants "県道294号" but NOT "県道294号を". 助詞はstep2で消えているはず。
                                         
-                                        parts.forEach(p => {
-                                            // 5. 各パーツのクリーニング: K1, C2, E17 などの高速ナンバリングや、2文字以下のゴミを除去
-                                            let clean = p.replace(/[KCE]\d+/g, '').trim(); 
-                                            // 「首都高」などの略称補正があればここで行うが、今回はシンプルに
-                                            if (clean.length > 2) { 
-                                                roads.push(clean);
-                                            }
-                                        });
-                                    }
+                                        if (isLikelyRoad) {
+                                            roads.push(clean);
+                                        }
+                                    });
                                 });
-                                // 重複排除と包含関係整理 (長い名前優先)
+                                // 重複排除と包含関係整理
                                 let unique = [...new Set(roads)];
+                                // 長い順に並べる
                                 unique.sort((a,b) => b.length - a.length);
                                 let final = [];
                                 unique.forEach(r => {
+                                    // 明らかにゴミっぽいものを最終除外
+                                    if (r === 'Google' || r.includes('分') || r.includes('km')) return;
                                     // 既にリストにある長い名前に含まれていなければ採用
                                     if(!final.some(existing => existing.includes(r))) {
                                         final.push(r);
