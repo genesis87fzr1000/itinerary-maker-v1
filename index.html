@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.3</title>
+    <title>旅のしおりメーカー v5.4</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,14 +13,12 @@
             font-family: 'Inter', sans-serif; 
             background-color: #f3f4f6; 
             color: #1f2937;
-            /* 広告枠とボタンの干渉を防ぐため余白を拡大 */
             padding-top: 70px; 
             padding-bottom: 120px; 
         }
         
-        /* 広告枠スタイル */
         .ad-banner {
-            position: fixed; left: 0; right: 0; z-index: 50; /* z-indexを適正化 */
+            position: fixed; left: 0; right: 0; z-index: 50;
             background-color: #e5e7eb; color: #9ca3af;
             display: flex; align-items: center; justify-content: center;
             font-size: 12px; font-weight: bold; border: 1px dashed #cbd5e1;
@@ -28,7 +26,6 @@
         .ad-top { top: 0; height: 60px; border-bottom-width: 1px; }
         .ad-bottom { bottom: 0; height: 60px; border-top-width: 1px; }
 
-        /* タイムライン線 */
         .timeline-container { position: relative; padding-left: 20px; }
         .timeline-line { 
             position: absolute; left: 11px; top: 24px; bottom: -10px; 
@@ -36,7 +33,6 @@
         }
         .timeline-item:last-child .timeline-line { display: none; }
         
-        /* ドット */
         .timeline-dot { 
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
@@ -44,7 +40,6 @@
             flex-shrink: 0; margin-right: 12px; position: relative;
         }
         
-        /* 編集パーツ */
         .input-hole {
             display: inline-block; border-bottom: 2px dashed #6366f1; color: #4f46e5;
             padding: 0 4px; cursor: pointer; transition: all 0.2s; font-weight: bold;
@@ -61,7 +56,6 @@
         .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #666; }
         .modal-bg { background-color: rgba(0,0,0,0.5); }
         
-        /* 印刷用設定 (スマホ対応強化) */
         @media print {
             .no-print, .ad-banner, header { display: none !important; }
             body { 
@@ -73,9 +67,7 @@
             #app-content { padding: 0 !important; max-width: none !important; }
             .shadow-xl, .shadow-lg, .shadow-sm { box-shadow: none !important; border: none !important; }
             .bg-gradient-to-r { background: #4f46e5 !important; color: white !important; }
-            /* ページ分割対策 */
             .timeline-item, .card { break-inside: avoid; page-break-inside: avoid; }
-            /* 地図エリア */
             #full-map-area { 
                 height: 300px !important; width: 100% !important; 
                 border: 1px solid #ddd !important; 
@@ -96,7 +88,7 @@
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
                 <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.3</span>
+                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.4</span>
                 </h1>
             </div>
             <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
@@ -131,13 +123,27 @@
 
     <div id="modal-transport" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4">🚗 移動手段の選択</h3>
-            <select id="input-transport" class="w-full p-3 border rounded text-lg font-bold mb-6">
+            <h3 class="text-lg font-bold mb-4">🚗 移動手段・渋滞設定</h3>
+            
+            <label class="block text-xs font-bold text-gray-500 mb-1">移動モード</label>
+            <select id="input-transport" class="w-full p-3 border rounded text-lg font-bold mb-4">
                 <option value="DRIVING_TOLL">🏎️ 車（有料優先）</option>
                 <option value="DRIVING_FREE">🚙 車（無料優先）</option>
                 <option value="WALKING">🚶 徒歩</option>
                 <option value="BICYCLING">🚲 自転車</option>
             </select>
+
+            <label class="block text-xs font-bold text-gray-500 mb-1">渋滞考慮 (余裕をもたせる)</label>
+            <div class="bg-indigo-50 p-3 rounded border border-indigo-100 mb-6">
+                <select id="input-traffic-buffer" class="w-full p-2 border rounded font-bold text-indigo-900">
+                    <option value="0">なし (API計算通り)</option>
+                    <option value="10">＋10分 の余裕を足す</option>
+                    <option value="20">＋20分 の余裕を足す</option>
+                    <option value="30">＋30分 の余裕を足す</option>
+                </select>
+                <p class="text-[10px] text-indigo-500 mt-1">※GoogleMapナビの実時間に近いゆとりを持たせます</p>
+            </div>
+
             <div class="flex justify-end gap-2">
                 <button onclick="closeModal('modal-transport')" class="px-4 py-2 text-gray-500">キャンセル</button>
                 <button onclick="confirmTransport()" class="px-6 py-2 bg-indigo-600 text-white font-bold rounded shadow">OK</button>
@@ -217,7 +223,7 @@
 
     <script>
         function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '5.3';
+        const APP_VERSION = '5.4';
         
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
@@ -232,7 +238,6 @@
             if(mode === 'DASHBOARD') renderDashboard();
         };
 
-        // --- Print Function ---
         function triggerPrint() {
             window.print();
             return false;
@@ -248,19 +253,19 @@
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'集合', memo:'', isBase:false, timeStr:'07:40' },
                     { type:'MOVE', mode:'WAIT', duration:0, dist:0 }, 
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'08:00', depTimeStr:'08:00' },
-                    { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['東京湾アクアライン','館山自動車道'] },
+                    { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['東京湾アクアライン','館山自動車道'], trafficBuffer:0 },
                     { type:'STOP', name:'矢那川ダム 展望台', location:'矢那川ダム', confirmed:true, stayTime:20, stayReason:'矢那川ダム撮影', memo:'', isBase:false, timeStr:'08:50', depTimeStr:'09:10' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:49, dist:0 },
+                    { type:'MOVE', mode:'DRIVING_FREE', duration:49, dist:0, trafficBuffer:10 },
                     { type:'STOP', name:'長柄町都市農村交流センター', location:'長柄町都市農村交流センター', confirmed:true, stayTime:20, stayReason:'長柄ダム撮影', memo:'カード取得', isBase:false, timeStr:'10:00', depTimeStr:'10:20' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:27, dist:0 },
+                    { type:'MOVE', mode:'DRIVING_FREE', duration:27, dist:0, trafficBuffer:0 },
                     { type:'STOP', name:'高滝ダム記念館', location:'高滝ダム記念館', confirmed:true, stayTime:20, stayReason:'高滝ダム撮影', memo:'カード取得', isBase:false, timeStr:'10:50', depTimeStr:'11:10' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:50, dist:0 },
+                    { type:'MOVE', mode:'DRIVING_FREE', duration:50, dist:0, trafficBuffer:0 },
                     { type:'STOP', name:'割烹料理「天平」', location:'割烹料理天平', confirmed:true, stayTime:60, stayReason:'昼食', memo:'なめろうとさんが焼きがお薦め', isBase:true, timeStr:'12:00', depTimeStr:'13:00' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:51, dist:0 },
+                    { type:'MOVE', mode:'DRIVING_FREE', duration:51, dist:0, trafficBuffer:0 },
                     { type:'STOP', name:'片倉ダム', location:'片倉ダム', confirmed:true, stayTime:10, stayReason:'片倉ダム撮影', memo:'', isBase:false, timeStr:'14:00', depTimeStr:'14:10' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:10, dist:0 },
+                    { type:'MOVE', mode:'DRIVING_FREE', duration:10, dist:0, trafficBuffer:0 },
                     { type:'STOP', name:'亀山・片倉ダム管理事務所', location:'亀山・片倉ダム管理事務所', confirmed:true, stayTime:20, stayReason:'亀山ダム撮影', memo:'亀山・片倉・矢那川ダムカード取得', isBase:false, timeStr:'14:20', depTimeStr:'14:40' },
-                    { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['館山自動車道','東京湾アクアライン'] },
+                    { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['館山自動車道','東京湾アクアライン'], trafficBuffer:0 },
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'15:30', depTimeStr:'' }
                 ]
             };
@@ -314,7 +319,6 @@
             const isSample = (mode === 'SAMPLE');
             const plan = editingPlan;
             
-            // 地図エリア
             let mapContainerHtml = (!isEdit) ? 
                 `<div class="p-6 border-t border-gray-200 bg-gray-50 print:bg-white print:border-none">
                     <div class="text-sm font-bold text-gray-500 mb-2 no-print">🗺️ ルートマップ</div>
@@ -334,7 +338,6 @@
                 const isStart = i === 2;
                 const isLast = i === plan.stops.length - 1;
                 
-                // --- STOP ITEM ---
                 if (item.type === 'STOP') {
                     const timeDisp = item.timeStr || '00:00';
                     let suffix = '到着';
@@ -368,7 +371,6 @@
                         </div>`;
                     }
 
-                    // 1行目
                     const rowBase = `
                         <div class="timeline-item timeline-container">
                             <div class="timeline-line"></div>
@@ -380,7 +382,6 @@
                         </div>`;
                     html += rowBase;
 
-                    // 滞在情報
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
                         if (isEdit) {
@@ -416,7 +417,6 @@
                             html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
                         }
 
-                        // 出発の行
                         const depTime = item.depTimeStr || '00:00'; 
                         let depNameHtml = isEdit ? `<span class="text-gray-400">${item.name||'地点名'}</span>` : `<span class="font-bold text-gray-800">${item.name}</span>`;
 
@@ -431,7 +431,6 @@
                         </div>`;
                     }
 
-                // --- MOVE ITEM ---
                 } else if (item.type === 'MOVE') {
                     if (item.mode === 'WAIT') return; 
 
@@ -440,29 +439,41 @@
                     const icon = { 'DRIVING_FREE':'🚗', 'DRIVING_TOLL':'🚗', 'WALKING':'🚶', 'BICYCLING':'🚲' }[mKey] || '🚗';
                     const dur = item.duration ? `${item.duration}分` : '00分';
                     const isToll = (mKey === 'DRIVING_TOLL');
-                    const trafficWarning = (mKey.includes('DRIVING')) ? `<span class="text-[10px] text-gray-400 ml-1 font-normal">(渋滞含まず)</span>` : '';
+                    
+                    // --- 渋滞表示ロジック (v5.4) ---
+                    let trafficText = '';
+                    const buf = item.trafficBuffer || 0;
+                    if (mKey.includes('DRIVING')) {
+                        if (buf > 0) {
+                            trafficText = `<span class="text-[10px] text-orange-600 bg-orange-100 px-1 rounded ml-1">(渋滞考慮+${buf}分)</span>`;
+                        } else {
+                            trafficText = `<span class="text-[10px] text-gray-400 ml-1 font-normal">(渋滞含まず)</span>`;
+                        }
+                    }
                     
                     let moveContent = '';
                     if (isEdit) {
                         const label = modeLabels[mKey] + (isToll ? '<span class="toll-tag">(有料)</span>' : '');
+                        const bufTag = buf > 0 ? `<span class="text-[10px] text-indigo-500 font-bold ml-1">+${buf}m</span>` : '';
                         moveContent = `
                         <div class="flex items-center gap-2 text-sm">
                             <span onclick="openTransportModal(${i})" class="select-box">${icon} ${label.replace(/<[^>]*>?/gm, '')} ${isToll?'(有料)':''} ▼</span>
-                            <span class="text-gray-400">移動 ${dur}</span>
+                            <span class="text-gray-400">移動 ${dur} ${bufTag}</span>
                         </div>`;
                     } else {
-                        // --- 道路名フィルタリングロジック v5.3 (Clean) ---
+                        // --- 道路名フィルタリング (v5.4: ホワイトリスト方式) ---
                         let roadsList = '';
-                        if (item.roads && item.roads.length > 0) {
+                        if (isToll && item.roads && item.roads.length > 0) {
+                            // 有料道路のみ、かつリストがある場合のみ表示
                             roadsList = item.roads.map(r => `<div>${r}</div>`).join('');
                         }
+                        // ※無料区間(DRIVING_FREE)の場合は roadsList を空のままにする＝表示しない
                         
                         let navBtn = '';
                         if (plan.stops[i-1] && plan.stops[i+1]) {
                              const origin = encodeURIComponent(plan.stops[i-1].location);
                              const dest = encodeURIComponent(plan.stops[i+1].location);
                              const tmode = (mKey.includes('DRIVING')) ? 'driving' : (mKey==='WALKING'?'walking':'bicycling');
-                             // Google Maps Navigation URL format
                              const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${tmode}`;
                              navBtn = `<a href="${url}" target="_blank" class="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1 rounded hover:bg-blue-100 no-print inline-flex items-center gap-1 font-bold whitespace-nowrap">🧭 ナビ</a>`;
                         }
@@ -472,11 +483,11 @@
                         moveContent = `
                         <div>
                             <div class="text-sm font-bold text-gray-600 flex items-center mb-1">
-                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>${trafficWarning}
+                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-gray-800 font-normal ml-1">${dur}</span>${trafficText}
                             </div>
                             <div class="flex gap-4 items-start">
                                 <div class="flex-shrink-0 pt-1">${navBtn}</div>
-                                <div class="text-xs text-gray-500 leading-relaxed min-w-0 break-words">
+                                <div class="text-xs text-gray-500 leading-relaxed min-w-0 break-words font-bold">
                                     ${roadsList}
                                 </div>
                             </div>
@@ -495,7 +506,6 @@
             html += mapContainerHtml; 
             html += `</div>`; 
 
-            // フッター
             let footer = '';
             if (isSample) {
                 footer = `<div class="mt-8 text-center pb-8 no-print"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
@@ -505,8 +515,7 @@
                     <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
                     <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
                 </div>`;
-            } else { // RESULT
-                // スマホ対応: ontouchstart, onclick両対応
+            } else { 
                 footer = `
                 <div class="mt-8 no-print space-y-4 pb-8">
                     <div class="flex gap-2">
@@ -530,7 +539,7 @@
             editingPlan = {
                 id: 'plan_' + Date.now(), name: '新規旅程プラン', baseTime: sample.baseTime, rounding: 0,
                 stops: sample.stops.map(s => {
-                    if (s.type === 'MOVE') return { ...s, duration: 0, roads:[] };
+                    if (s.type === 'MOVE') return { ...s, duration: 0, roads:[], trafficBuffer: 0 };
                     let r = ''; if (s.stayReason === '昼食') r = '昼食';
                     let m = ''; if (s.memo && s.memo.includes('なめろう')) m = s.memo;
                     return { ...s, name:'', location:'', confirmed:false, stayReason:r, memo:m, timeStr:'00:00', depTimeStr:'00:00' };
@@ -542,7 +551,7 @@
         function startNewEdit() { copySampleToEdit(); }
 
         function addNextStop() {
-            editingPlan.stops.push({ type:'MOVE', mode:'DRIVING_FREE', duration:0 });
+            editingPlan.stops.push({ type:'MOVE', mode:'DRIVING_FREE', duration:0, trafficBuffer:0 });
             editingPlan.stops.push({ type:'STOP', name:'', location:'', confirmed:false, stayTime:20, stayReason:'', memo:'', isBase:false, timeStr:'00:00' });
             renderTimeline();
         }
@@ -565,7 +574,6 @@
             renderTimeline();
         }
 
-        // --- Modal ---
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -617,8 +625,22 @@
             renderTimeline();
         }
 
-        function openTransportModal(idx) { editingIndex = idx; document.getElementById('input-transport').value = editingPlan.stops[idx].mode; openModal('modal-transport'); }
-        function confirmTransport() { editingPlan.stops[editingIndex].mode = document.getElementById('input-transport').value; closeModal('modal-transport'); renderTimeline(); }
+        // --- Transport & Traffic Buffer Logic (v5.4) ---
+        function openTransportModal(idx) { 
+            editingIndex = idx; 
+            const item = editingPlan.stops[idx];
+            document.getElementById('input-transport').value = item.mode; 
+            document.getElementById('input-traffic-buffer').value = item.trafficBuffer || 0;
+            openModal('modal-transport'); 
+        }
+        function confirmTransport() { 
+            const item = editingPlan.stops[editingIndex];
+            item.mode = document.getElementById('input-transport').value; 
+            item.trafficBuffer = parseInt(document.getElementById('input-traffic-buffer').value);
+            closeModal('modal-transport'); 
+            renderTimeline(); 
+        }
+
         function openStayModal(idx) { 
             editingIndex = idx; const item = editingPlan.stops[idx]; 
             document.getElementById('input-stay-reason').value = item.stayReason; 
@@ -657,6 +679,7 @@
             closeModal('modal-finalize');
             document.getElementById('app-content').innerHTML = '<div class="text-center p-20"><div class="text-3xl animate-bounce">🚗</div><div class="mt-4 font-bold text-gray-500">ルート計算中...</div></div>';
             const ds = new google.maps.DirectionsService();
+            
             for(let i=0; i<editingPlan.stops.length; i++) {
                 const item = editingPlan.stops[i];
                 if (item.type === 'MOVE') {
@@ -664,66 +687,47 @@
                     const start = editingPlan.stops[i-1].location; const end = editingPlan.stops[i+1].location;
                     let gMode = 'DRIVING'; let avoidTolls = false;
                     if(item.mode === 'DRIVING_FREE') avoidTolls = true; else if(item.mode === 'DRIVING_TOLL') avoidTolls = false; else gMode = item.mode;
+                    
                     try {
                         const res = await new Promise(resolve => ds.route({ origin: start, destination: end, travelMode: gMode, avoidTolls: avoidTolls }, (r, s) => resolve(s==='OK'?r:null)));
+                        
                         if (res) {
-                            const leg = res.routes[0].legs[0]; item.duration = Math.ceil(leg.duration.value / 60);
+                            const leg = res.routes[0].legs[0]; 
+                            const apiDuration = Math.ceil(leg.duration.value / 60);
+                            
+                            // --- 渋滞バッファ加算 (v5.4) ---
+                            const buffer = item.trafficBuffer || 0;
+                            item.duration = apiDuration + buffer;
+
                             let roads = [];
-                            if (gMode === 'DRIVING') {
+                            // --- 道路名厳選ロジック (v5.4 ホワイトリスト方式) ---
+                            if (gMode === 'DRIVING' && item.mode === 'DRIVING_TOLL') {
+                                // 有料区間の場合のみ解析
                                 leg.steps.forEach(s => {
-                                    // 1. HTML除去 & 基本整形
-                                    let txt = s.instructions.replace(/<[^>]*>/g, '').trim();
+                                    // HTMLタグを除去し、"/"やスペースで分割してトークン化
+                                    const rawTxt = s.instructions.replace(/<[^>]*>/g, ' ').replace(/[（(].*?[)）]/g, '');
+                                    const tokens = rawTxt.split(/[\/\s、,]+/);
                                     
-                                    // 2. 超強力クリーニング (動詞・助詞・指示語の削除)
-                                    // "右折して" "ランプを進んで" "の標識に従う" "を出る" "車線を使用して" "有料区間"
-                                    // これらを空文字に置換してから "/" で割る
-                                    txt = txt.replace(/(右折|左折|直進|斜め|方向)して/g, '')
-                                             .replace(/(ランプ|分岐)を(進んで|進む)?/g, '') // ランプを進んで
-                                             .replace(/の?標識に(従う)?/g, '') // の標識に従う
-                                             .replace(/([のへに])?入る/g, '')
-                                             .replace(/出口(を出る|へ)?/g, '')
-                                             .replace(/((右|左)車線を?)?使用して/g, '') // 左車線を使用して
-                                             .replace(/(有料区間|ルート|JCT|IC|インター|方面)/g, '') // 有料区間等は削除（名前だけ残す）
-                                             .replace(/(を|から)出る/g, '') // 〜を出る
-                                             .replace(/[をにへ]/g, ' ') // 助詞をスペースに置換
-                                             .trim();
-                                    
-                                    // 3. 分割 (スラッシュ、スペース、読点)
-                                    const parts = txt.split(/[\/\s、]+/);
-                                    
-                                    parts.forEach(p => {
-                                        // 4. 個別パーツのフィルタリング
-                                        // "県道294号" → 残す / "右折" → 消す (残骸処理)
-                                        let clean = p.replace(/[KCE]\d+/g, '').trim(); // ナンバリング削除
-                                        
-                                        // 2文字以下、かつ「線」「道」「通り」を含まないものはノイズとみなして捨てる
-                                        // ただしアルファベット含む短い名前（もしあれば）は考慮必要だが今回は無視
-                                        const isLikelyRoad = (clean.length > 2) || clean.includes('線') || clean.includes('道') || clean.includes('橋');
-                                        
-                                        // "昭和島" などの地名だけが残るケースを除外するため、
-                                        // 確実に道路っぽいキーワードが入っているかチェック（オプション）
-                                        // 今回は「県道」「都道」の数字だけ残すなら "294号" となるが、
-                                        // User wants "県道294号" but NOT "県道294号を". 助詞はstep2で消えているはず。
-                                        
-                                        if (isLikelyRoad) {
-                                            roads.push(clean);
+                                    tokens.forEach(t => {
+                                        const clean = t.trim();
+                                        // ホワイトリストキーワード判定
+                                        // これらが含まれないものは全て無視する
+                                        if (
+                                            clean.match(/(高速|自動車道|スカイライン|有料道路|ライン|京葉道路|アクアライン)/) &&
+                                            !clean.match(/^(右折|左折|直進|斜め|方向|ランプ|入口|出口|JCT|IC|インター)$/) // 除外
+                                        ) {
+                                            // さらに除外：短すぎるゴミ、"〜方面" など
+                                            if (clean.length > 2 && !clean.includes('方面')) {
+                                                roads.push(clean);
+                                            }
                                         }
                                     });
                                 });
-                                // 重複排除と包含関係整理
-                                let unique = [...new Set(roads)];
-                                // 長い順に並べる
-                                unique.sort((a,b) => b.length - a.length);
-                                let final = [];
-                                unique.forEach(r => {
-                                    // 明らかにゴミっぽいものを最終除外
-                                    if (r === 'Google' || r.includes('分') || r.includes('km')) return;
-                                    // 既にリストにある長い名前に含まれていなければ採用
-                                    if(!final.some(existing => existing.includes(r))) {
-                                        final.push(r);
-                                    }
-                                });
-                                item.roads = final;
+                                // 重複排除
+                                item.roads = [...new Set(roads)];
+                            } else {
+                                // 無料区間または徒歩等は道路名なし
+                                item.roads = [];
                             }
                         } else { item.duration = 0; }
                     } catch(e) { item.duration = 0; }
@@ -758,7 +762,7 @@
                 if(stops[i].type === 'STOP') {
                     const prevMove = stops[i-1];
                     const prevStop = stops[i-2];
-                    const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0);
+                    const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0); // ここにはバッファ込みの時間が入っている
                     const arrRounded = roundUp(arrRaw);
                     stops[i].arrTime = arrRounded;
                     stops[i].depTime = roundUp(addMin(arrRounded, stops[i].stayTime));
