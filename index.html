@@ -21,7 +21,7 @@
             position: fixed; left: 0; right: 0; z-index: 50;
             background-color: #e5e7eb; color: #9ca3af;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: bold; border: 1px dashed #cbd5e1;
+            font-size: 12px; font-weight: bold; border: 1px dashed #d1d5db;
         }
         .ad-top { top: 0; height: 60px; border-bottom-width: 1px; }
         .ad-bottom { bottom: 0; height: 60px; border-top-width: 1px; }
@@ -36,7 +36,7 @@
         .timeline-dot { 
             width: 24px; height: 24px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #94a3b8;
+            font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #d1d5db;
             flex-shrink: 0; margin-right: 12px; position: relative;
         }
         
@@ -49,12 +49,12 @@
         .input-readonly { color: #1f2937; border-bottom: none; pointer-events: none; }
         .select-box {
             display: inline-flex; align-items: center; justify-content: center;
-            border: 1px solid #cbd5e1; background-color: #fff;
+            border: 1px solid #d1d5db; background-color: #fff;
             padding: 2px 8px; border-radius: 4px; cursor: pointer;
-            font-size: 0.75rem; color: #64748b;
+            font-size: 0.75rem; color: #6366f1;
         }
-        .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #666; }
-        .modal-bg { background-color: rgba(0,0,0,0.5); }
+        .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #6366f1; }
+        .modal-bg { background-color: rgba(0, 0, 0, 0.5); }
         
         @media print {
             .no-print, .ad-banner, header { display: none !important; }
@@ -83,7 +83,7 @@
         <span>広告枠 (Top) 320x50 / 320x100</span>
     </div>
 
-    <header class="w-full bg-indigo-700 text-white shadow-md z-40 no-print" style="position: sticky; top: 60px;">
+    <header class="w-full bg-indigo-600 text-white shadow-md z-40 no-print" style="position: sticky; top: 60px;">
         <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-end">
             <div>
                 <p class="text-[10px] text-indigo-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
@@ -91,7 +91,7 @@
                     <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-indigo-500 px-1.5 py-0.5 rounded">v5.4</span>
                 </h1>
             </div>
-            <button onclick="goHome()" class="text-xs bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-white font-bold transition">
+            <button onclick="goHome()" class="text-xs bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded text-white font-bold transition">
                 🏠 マイページ
             </button>
         </div>
@@ -134,14 +134,14 @@
             </select>
 
             <label class="block text-xs font-bold text-gray-500 mb-1">渋滞考慮 (余裕をもたせる)</label>
-            <div class="bg-indigo-50 p-3 rounded border border-indigo-100 mb-6">
-                <select id="input-traffic-buffer" class="w-full p-2 border rounded font-bold text-indigo-900">
+            <div class="bg-blue-50 p-3 rounded border border-blue-100 mb-6">
+                <select id="input-traffic-buffer" class="w-full p-2 border rounded font-bold text-blue-900">
                     <option value="0">なし (API計算通り)</option>
                     <option value="10">＋10分 の余裕を足す</option>
                     <option value="20">＋20分 の余裕を足す</option>
                     <option value="30">＋30分 の余裕を足す</option>
                 </select>
-                <p class="text-[10px] text-indigo-500 mt-1">※GoogleMapナビの実時間に近いゆとりを持たせます</p>
+                <p class="text-[10px] text-blue-500 mt-1">※GoogleMapナビの実時間に近いゆとりを持たせます</p>
             </div>
 
             <div class="flex justify-end gap-2">
@@ -214,7 +214,7 @@
             </div>
             <div class="flex justify-end gap-2">
                 <button onclick="closeModal('modal-finalize')" class="px-4 py-2 text-gray-500">戻る</button>
-                <button onclick="executeCalculation()" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded shadow">作成する！</button>
+                <button onclick="executeCalculation()" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded shadow">作成する！</button>
             </div>
         </div>
     </div>
@@ -243,7 +243,6 @@
             return false;
         }
 
-        // --- サンプルデータ ---
         function getSampleData() {
             const date = new Date(); date.setDate(date.getDate()+1);
             const ymd = date.toISOString().split('T')[0];
@@ -271,7 +270,6 @@
             };
         }
 
-        // --- レンダリング ---
         function renderDashboard() {
             mode = 'DASHBOARD';
             let listHtml = '';
@@ -280,7 +278,7 @@
                     listHtml += `
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 flex justify-between items-center">
                         <div>
-                            <div class="font-bold text-lg text-indigo-900">${p.name}</div>
+                            <div class="font-bold text-lg text-gray-800">${p.name}</div>
                             <div class="text-xs text-gray-500">${new Date(p.updatedAt).toLocaleDateString()} 更新</div>
                         </div>
                         <div class="flex gap-2">
@@ -297,14 +295,14 @@
             document.getElementById('app-content').innerHTML = `
                 <div class="space-y-8 animate-fade-in">
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition" onclick="showSample()">
-                        <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-2"></div>
+                        <div class="bg-gradient-to-r from-indigo-400 to-indigo-500 h-2"></div>
                         <div class="p-6 text-center">
                             <h3 class="text-xl font-extrabold text-gray-800 mb-1">千葉のダム巡り</h3>
                             <p class="text-xs text-gray-500 mb-4">サンプルプラン</p>
-                            <div class="text-sm text-blue-600 font-bold">👀 見本を見る / これを基に作成</div>
+                            <div class="text-sm text-indigo-600 font-bold">👀 見本を見る / これを基に作成</div>
                         </div>
                     </div>
-                    <button onclick="startNewEdit()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-bold rounded-2xl shadow-lg hover:opacity-90 transform transition hover:-translate-y-1">
+                    <button onclick="startNewEdit()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-lg font-bold rounded-2xl shadow-lg hover:opacity-90 transform transition hover:-translate-y-1">
                         + 新しい旅程を作成する
                     </button>
                     <div>
@@ -327,7 +325,7 @@
 
             let html = `
                 <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] card">
-                    <div class="p-5 bg-gradient-to-r from-indigo-700 to-blue-700 text-white text-center print:text-black print:bg-white">
+                    <div class="p-5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-center print:text-black print:bg-white">
                         <h2 class="text-xl font-extrabold mb-1">${plan.name}</h2>
                         ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full no-print">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80 print:text-gray-600">${new Date().toLocaleDateString()} 作成</p>`}
                     </div>
@@ -440,12 +438,11 @@
                     const dur = item.duration ? `${item.duration}分` : '00分';
                     const isToll = (mKey === 'DRIVING_TOLL');
                     
-                    // --- 渋滞表示ロジック (v5.4) ---
                     let trafficText = '';
                     const buf = item.trafficBuffer || 0;
                     if (mKey.includes('DRIVING')) {
                         if (buf > 0) {
-                            trafficText = `<span class="text-[10px] text-orange-600 bg-orange-100 px-1 rounded ml-1">(渋滞考慮+${buf}分)</span>`;
+                            trafficText = `<span class="text-[10px] text-blue-600 bg-blue-100 px-1 rounded ml-1">(渋滞考慮+${buf}分)</span>`;
                         } else {
                             trafficText = `<span class="text-[10px] text-gray-400 ml-1 font-normal">(渋滞含まず)</span>`;
                         }
@@ -454,20 +451,17 @@
                     let moveContent = '';
                     if (isEdit) {
                         const label = modeLabels[mKey] + (isToll ? '<span class="toll-tag">(有料)</span>' : '');
-                        const bufTag = buf > 0 ? `<span class="text-[10px] text-indigo-500 font-bold ml-1">+${buf}m</span>` : '';
+                        const bufTag = buf > 0 ? `<span class="text-[10px] text-blue-500 font-bold ml-1">+${buf}m</span>` : '';
                         moveContent = `
                         <div class="flex items-center gap-2 text-sm">
                             <span onclick="openTransportModal(${i})" class="select-box">${icon} ${label.replace(/<[^>]*>?/gm, '')} ${isToll?'(有料)':''} ▼</span>
                             <span class="text-gray-400">移動 ${dur} ${bufTag}</span>
                         </div>`;
                     } else {
-                        // --- 道路名フィルタリング (v5.4: ホワイトリスト方式) ---
                         let roadsList = '';
                         if (isToll && item.roads && item.roads.length > 0) {
-                            // 有料道路のみ、かつリストがある場合のみ表示
                             roadsList = item.roads.map(r => `<div>${r}</div>`).join('');
                         }
-                        // ※無料区間(DRIVING_FREE)の場合は roadsList を空のままにする＝表示しない
                         
                         let navBtn = '';
                         if (plan.stops[i-1] && plan.stops[i+1]) {
@@ -508,12 +502,12 @@
 
             let footer = '';
             if (isSample) {
-                footer = `<div class="mt-8 text-center pb-8 no-print"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
+                footer = `<div class="mt-8 text-center pb-8 no-print"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
             } else if (isEdit) {
                 footer = `
                 <div class="mt-8 space-y-4 text-center pb-8 no-print">
                     <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-400 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
-                    <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
+                    <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
                 </div>`;
             } else { 
                 footer = `
@@ -531,7 +525,6 @@
             if(!isEdit) setTimeout(initFullMap, 800); 
         }
 
-        // --- ロジック ---
         function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
         
         function copySampleToEdit() {
@@ -625,7 +618,6 @@
             renderTimeline();
         }
 
-        // --- Transport & Traffic Buffer Logic (v5.4) ---
         function openTransportModal(idx) { 
             editingIndex = idx; 
             const item = editingPlan.stops[idx];
@@ -694,39 +686,28 @@
                         if (res) {
                             const leg = res.routes[0].legs[0]; 
                             const apiDuration = Math.ceil(leg.duration.value / 60);
-                            
-                            // --- 渋滞バッファ加算 (v5.4) ---
                             const buffer = item.trafficBuffer || 0;
                             item.duration = apiDuration + buffer;
 
                             let roads = [];
-                            // --- 道路名厳選ロジック (v5.4 ホワイトリスト方式) ---
                             if (gMode === 'DRIVING' && item.mode === 'DRIVING_TOLL') {
-                                // 有料区間の場合のみ解析
                                 leg.steps.forEach(s => {
-                                    // HTMLタグを除去し、"/"やスペースで分割してトークン化
                                     const rawTxt = s.instructions.replace(/<[^>]*>/g, ' ').replace(/[（(].*?[)）]/g, '');
                                     const tokens = rawTxt.split(/[\/\s、,]+/);
-                                    
                                     tokens.forEach(t => {
                                         const clean = t.trim();
-                                        // ホワイトリストキーワード判定
-                                        // これらが含まれないものは全て無視する
                                         if (
                                             clean.match(/(高速|自動車道|スカイライン|有料道路|ライン|京葉道路|アクアライン)/) &&
-                                            !clean.match(/^(右折|左折|直進|斜め|方向|ランプ|入口|出口|JCT|IC|インター)$/) // 除外
+                                            !clean.match(/^(右折|左折|直進|斜め|方向|ランプ|入口|出口|JCT|IC|インター)$/)
                                         ) {
-                                            // さらに除外：短すぎるゴミ、"〜方面" など
                                             if (clean.length > 2 && !clean.includes('方面')) {
                                                 roads.push(clean);
                                             }
                                         }
                                     });
                                 });
-                                // 重複排除
                                 item.roads = [...new Set(roads)];
                             } else {
-                                // 無料区間または徒歩等は道路名なし
                                 item.roads = [];
                             }
                         } else { item.duration = 0; }
@@ -762,7 +743,7 @@
                 if(stops[i].type === 'STOP') {
                     const prevMove = stops[i-1];
                     const prevStop = stops[i-2];
-                    const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0); // ここにはバッファ込みの時間が入っている
+                    const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0);
                     const arrRounded = roundUp(arrRaw);
                     stops[i].arrTime = arrRounded;
                     stops[i].depTime = roundUp(addMin(arrRounded, stops[i].stayTime));
