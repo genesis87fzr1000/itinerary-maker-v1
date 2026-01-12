@@ -9,10 +9,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        
+        /* --- ご指定の文字サイズ・太さ設定 --- */
+        .font-bold { 
+            font-weight: 400 !important; 
+        }
+        .text-sm { 
+            font-size: 1.2rem !important; 
+            line-height: 2rem !important; 
+        }
+        /* ---------------------------------- */
+
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #FFF8F0; /* 非常に薄いオレンジ */
-            color: #4E2600; /* 黒の代わりに最も濃いオレンジブラウン */
+            background-color: #FFF8F0; 
+            color: #4E2600; 
             padding-top: 70px; 
             padding-bottom: 120px; 
         }
@@ -41,7 +52,7 @@
         }
         
         .input-hole {
-            display: inline-block; border-bottom: 2px dashed #F57C00; color: #E65100;
+            display: inline-block; border-bottom: 2px dashed #F57C00; color: #f97316;
             padding: 0 4px; cursor: pointer; transition: all 0.2s; font-weight: bold;
             min-width: 60px; text-align: center;
         }
@@ -54,7 +65,7 @@
             font-size: 0.75rem; color: #F57C00;
         }
         .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #F57C00; }
-        .modal-bg { background-color: rgba(78, 38, 0, 0.5); } /* オレンジブラウンの透過背景 */
+        .modal-bg { background-color: rgba(78, 38, 0, 0.5); }
         
         @media print {
             .no-print, .ad-banner, header { display: none !important; }
@@ -105,9 +116,9 @@
 
     <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
-            <h3 class="text-lg font-bold mb-4 text-orange-900">📍 地点・施設名の入力</h3>
+            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">📍 地点・施設名の入力</h3>
             <div class="flex gap-2 mb-2">
-                <input type="text" id="input-loc-name" list="saved-locations-list" class="flex-1 p-2 border border-orange-200 rounded font-bold text-orange-900" placeholder="例: 東京駅">
+                <input type="text" id="input-loc-name" list="saved-locations-list" class="flex-1 p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 東京駅">
                 <button onclick="validateLocation()" class="bg-orange-100 text-orange-700 px-3 rounded font-bold whitespace-nowrap">確定</button>
             </div>
             <p id="loc-search-res" class="text-xs text-orange-500 mb-4 h-4 truncate">※確定を押して住所を確認してください</p>
@@ -123,10 +134,10 @@
 
     <div id="modal-transport" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 text-orange-900">🚗 移動手段・渋滞設定</h3>
+            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">🚗 移動手段・渋滞設定</h3>
             
             <label class="block text-xs font-bold text-orange-400 mb-1">移動モード</label>
-            <select id="input-transport" class="w-full p-3 border border-orange-200 rounded text-lg font-bold mb-4 text-orange-900">
+            <select id="input-transport" class="w-full p-3 border border-orange-200 rounded text-lg font-bold mb-4" style="color:#f97316;">
                 <option value="DRIVING_TOLL">🏎️ 車（有料優先）</option>
                 <option value="DRIVING_FREE">🚙 車（無料優先）</option>
                 <option value="WALKING">🚶 徒歩</option>
@@ -135,7 +146,7 @@
 
             <label class="block text-xs font-bold text-orange-400 mb-1">渋滞考慮 (余裕をもたせる)</label>
             <div class="bg-orange-50 p-3 rounded border border-orange-100 mb-6">
-                <select id="input-traffic-buffer" class="w-full p-2 border border-orange-200 rounded font-bold text-orange-900">
+                <select id="input-traffic-buffer" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
                     <option value="0">なし (API計算通り)</option>
                     <option value="10">＋10分 の余裕を足す</option>
                     <option value="20">＋20分 の余裕を足す</option>
@@ -153,14 +164,14 @@
 
     <div id="modal-stay" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 text-orange-900">⏳ 滞在・基点設定</h3>
+            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">⏳ 滞在・基点設定</h3>
             <div class="mb-3">
                 <label class="block text-xs font-bold text-orange-400">滞在理由</label>
-                <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold text-orange-900" placeholder="例: 昼食">
+                <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 昼食">
             </div>
             <div class="mb-3">
                 <label class="block text-xs font-bold text-orange-400">滞在時間</label>
-                <select id="input-stay-time" class="w-full p-2 border border-orange-200 rounded font-bold text-orange-900">
+                <select id="input-stay-time" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
                     <option value="0">0分 (通過)</option>
                     <option value="10">10分</option><option value="20">20分</option><option value="30">30分</option>
                     <option value="40">40分</option><option value="50">50分</option><option value="60">60分</option>
@@ -184,8 +195,8 @@
 
     <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 text-orange-900">📝 メモ入力</h3>
-            <textarea id="input-memo" rows="3" class="w-full p-3 border border-orange-200 rounded mb-4 text-orange-900" placeholder="メモを入力..."></textarea>
+            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">📝 メモ入力</h3>
+            <textarea id="input-memo" rows="3" class="w-full p-3 border border-orange-200 rounded mb-4" style="color:#f97316;" placeholder="メモを入力..."></textarea>
             <div class="flex justify-end gap-2">
                 <button onclick="closeModal('modal-memo')" class="px-4 py-2 text-orange-400">キャンセル</button>
                 <button onclick="confirmMemo()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button>
@@ -198,15 +209,15 @@
             <h3 class="text-lg font-bold mb-4 text-orange-700">🚀 仕上げ設定</h3>
             <div class="mb-3">
                 <label class="block text-xs font-bold text-orange-400 mb-1">プラン名</label>
-                <input type="text" id="final-plan-name" class="w-full p-2 border border-orange-200 rounded font-bold text-orange-900" value="マイ旅程プラン">
+                <input type="text" id="final-plan-name" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" value="マイ旅程プラン">
             </div>
             <div class="mb-3">
                 <label class="block text-xs font-bold text-orange-400 mb-1">基点日時</label>
-                <input type="datetime-local" id="final-base-time" class="w-full p-2 border border-orange-200 rounded font-bold text-orange-900">
+                <input type="datetime-local" id="final-base-time" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
             </div>
             <div class="mb-4">
                 <label class="block text-xs font-bold text-orange-400 mb-1">時間表示切上（0:07を0:10に）</label>
-                <select id="final-rounding" class="w-full p-2 border border-orange-200 rounded text-orange-900">
+                <select id="final-rounding" class="w-full p-2 border border-orange-200 rounded" style="color:#f97316;">
                     <option value="0">なし (そのまま表示)</option>
                     <option value="5">5分単位</option>
                     <option value="10">10分単位</option>
@@ -278,7 +289,7 @@
                     listHtml += `
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-orange-200 mb-4 flex justify-between items-center">
                         <div>
-                            <div class="font-bold text-lg text-orange-900">${p.name}</div>
+                            <div class="font-bold text-lg" style="color:#f97316;">${p.name}</div>
                             <div class="text-xs text-orange-400">${new Date(p.updatedAt).toLocaleDateString()} 更新</div>
                         </div>
                         <div class="flex gap-2">
@@ -297,7 +308,7 @@
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition" onclick="showSample()">
                         <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-2"></div>
                         <div class="p-6 text-center">
-                            <h3 class="text-xl font-extrabold text-orange-900 mb-1">千葉のダム巡り</h3>
+                            <h3 class="text-xl font-extrabold mb-1" style="color:#f97316;">千葉のダム巡り</h3>
                             <p class="text-xs text-orange-400 mb-4">サンプルプラン</p>
                             <div class="text-sm text-orange-600 font-bold">👀 見本を見る / これを基に作成</div>
                         </div>
@@ -356,7 +367,7 @@
                             nameHtml = `<span onclick="openLocationModal(${i})" class="${cls}">${val}</span>`;
                         }
                     } else {
-                        nameHtml = `<span class="font-bold text-orange-900">${item.name}</span>`;
+                        nameHtml = `<span class="font-bold" style="color:#f97316;">${item.name}</span>`;
                     }
 
                     let controls = '';
@@ -374,7 +385,7 @@
                             <div class="timeline-line"></div>
                             <div class="flex items-center w-full">
                                 <div class="timeline-dot ${dotClass}">${dotIcon}</div>
-                                <div class="w-10 text-right font-bold text-sm text-orange-900 flex-shrink-0 mr-3">${timeDisp}</div>
+                                <div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div>
                                 <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div>
                             </div>
                         </div>`;
@@ -402,7 +413,7 @@
                                 <div class="flex gap-2 mt-1">
                                     <div class="w-10 flex-shrink-0 text-center text-xl">⏳</div>
                                     <div>
-                                        <div class="text-sm text-orange-900 font-bold">
+                                        <div class="text-sm font-bold" style="color:#f97316;">
                                             ${item.stayReason} <span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span>
                                         </div>
                                         ${item.memo ? `<div class="text-xs text-orange-400 mt-0.5">📝 ${item.memo}</div>` : ''}
@@ -416,14 +427,14 @@
                         }
 
                         const depTime = item.depTimeStr || '00:00'; 
-                        let depNameHtml = isEdit ? `<span class="text-orange-300">${item.name||'地点名'}</span>` : `<span class="font-bold text-orange-900">${item.name}</span>`;
+                        let depNameHtml = isEdit ? `<span class="text-orange-300">${item.name||'地点名'}</span>` : `<span class="font-bold" style="color:#f97316;">${item.name}</span>`;
 
                         html += `
                         <div class="timeline-item timeline-container pb-3 min-h-[30px]">
                             <div class="timeline-line"></div>
                             <div class="flex items-center w-full">
                                 <div class="timeline-dot border-orange-300 text-orange-300">●</div>
-                                <div class="w-10 text-right font-bold text-sm text-orange-900 flex-shrink-0 mr-3">${depTime}</div>
+                                <div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${depTime}</div>
                                 <div class="flex-grow text-sm">${depNameHtml} <span class="font-bold text-orange-500">出発</span></div>
                             </div>
                         </div>`;
@@ -477,7 +488,7 @@
                         moveContent = `
                         <div>
                             <div class="text-sm font-bold text-orange-500 flex items-center mb-1">
-                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-orange-900 font-normal ml-1">${dur}</span>${trafficText}
+                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="font-normal ml-1" style="color:#f97316;">${dur}</span>${trafficText}
                             </div>
                             <div class="flex gap-4 items-start">
                                 <div class="flex-shrink-0 pt-1">${navBtn}</div>
