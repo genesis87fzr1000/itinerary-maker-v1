@@ -324,4 +324,480 @@
                  </div>` : '';
 
             let html = `
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] card">
+                    <div class="p-5 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-center print:text-orange-900 print:bg-white">
+                        <h2 class="text-xl font-extrabold mb-1">${plan.name}</h2>
+                        ${isSample ? '<p class="mt-2 text-xs bg-white/20 inline-block px-3 py-1 rounded-full no-print">このサンプルをあなたの旅プランに作り替えましょう</p>' : `<p class="text-xs opacity-80 print:text-orange-600">${new Date().toLocaleDateString()} 作成</p>`}
+                    </div>
+                    <div class="p-4 sm:p-6 space-y-0">`; 
+
+            plan.stops.forEach((item, i) => {
+                const isFirst = i === 0; 
+                const isStart = i === 2;
+                const isLast = i === plan.stops.length - 1;
+                
+                if (item.type === 'STOP') {
+                    const timeDisp = item.timeStr || '00:00';
+                    let suffix = '到着';
+                    if (isFirst) suffix = '集合'; 
+                    else if (isStart) suffix = '出発';
+                    
+                    const dotClass = item.isBase ? 'border-orange-600 text-orange-600' : 'border-orange-300 text-orange-300';
+                    const dotIcon = item.isBase ? '★' : '●';
+
+                    let nameHtml = '';
+                    if (isEdit) {
+                        if (isFirst) {
+                            const val = item.name || '（出発地と同じ）';
+                            nameHtml = `<span class="input-readonly text-orange-400 text-sm">${val}</span>`;
+                        } else {
+                            const val = item.name || '地点・施設名の入力';
+                            const cls = item.name ? 'input-hole filled' : 'input-hole text-orange-300';
+                            nameHtml = `<span onclick="openLocationModal(${i})" class="${cls}">${val}</span>`;
+                        }
+                    } else {
+                        nameHtml = `<span class="font-bold text-orange-900">${item.name}</span>`;
+                    }
+
+                    let controls = '';
+                    if (isEdit && i > 2) {
+                        controls = `
+                        <div class="ml-auto flex gap-1 no-print">
+                            ${i > 4 ? `<button onclick="moveStop(${i},-1)" class="text-[10px] bg-orange-50 px-1 rounded hover:bg-orange-100 text-orange-600">↑</button>` : ''}
+                            ${!isLast ? `<button onclick="moveStop(${i},1)" class="text-[10px] bg-orange-50 px-1 rounded hover:bg-orange-100 text-orange-600">↓</button>` : ''}
+                            <button onclick="deleteStop(${i})" class="text-orange-400 text-xs ml-1 font-bold">×</button>
+                        </div>`;
+                    }
+
+                    const rowBase = `
+                        <div class="timeline-item timeline-container">
+                            <div class="timeline-line"></div>
+                            <div class="flex items-center w-full">
+                                <div class="timeline-dot ${dotClass}">${dotIcon}</div>
+                                <div class="w-10 text-right font-bold text-sm text-orange-900 flex-shrink-0 mr-3">${timeDisp}</div>
+                                <div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div>
+                            </div>
+                        </div>`;
+                    html += rowBase;
+
+                    if (!isFirst && !isStart && !isLast) {
+                        let stayHtml = '';
+                        if (isEdit) {
+                            const rVal = item.stayReason || '滞在理由入力';
+                            const rCls = item.stayReason ? 'filled' : 'text-orange-300';
+                            const tVal = item.stayTime || '00';
+                            const mVal = item.memo || '📝 メモ入力';
+                            const mCls = item.memo ? 'filled' : 'text-orange-300';
+                            
+                            stayHtml = `
+                                <div class="flex items-center gap-2 text-sm text-orange-500 mt-1">
+                                    <span class="text-xl">⏳</span>
+                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls}">${rVal}</span> 滞在 
+                                    <span onclick="openStayModal(${i})" class="input-hole filled text-center" style="min-width:30px">${tVal}</span> 分
+                                    <span onclick="openMemoModal(${i})" class="input-hole ${mCls} text-xs ml-2">${mVal}</span>
+                                </div>`;
+                        } else {
+                            if (item.stayReason || item.stayTime > 0) {
+                                stayHtml = `
+                                <div class="flex gap-2 mt-1">
+                                    <div class="w-10 flex-shrink-0 text-center text-xl">⏳</div>
+                                    <div>
+                                        <div class="text-sm text-orange-900 font-bold">
+                                            ${item.stayReason} <span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span>
+                                        </div>
+                                        ${item.memo ? `<div class="text-xs text-orange-400 mt-0.5">📝 ${item.memo}</div>` : ''}
+                                    </div>
+                                </div>`;
+                            }
+                        }
+                        
+                        if (stayHtml) {
+                            html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
+                        }
+
+                        const depTime = item.depTimeStr || '00:00'; 
+                        let depNameHtml = isEdit ? `<span class="text-orange-300">${item.name||'地点名'}</span>` : `<span class="font-bold text-orange-900">${item.name}</span>`;
+
+                        html += `
+                        <div class="timeline-item timeline-container pb-3 min-h-[30px]">
+                            <div class="timeline-line"></div>
+                            <div class="flex items-center w-full">
+                                <div class="timeline-dot border-orange-300 text-orange-300">●</div>
+                                <div class="w-10 text-right font-bold text-sm text-orange-900 flex-shrink-0 mr-3">${depTime}</div>
+                                <div class="flex-grow text-sm">${depNameHtml} <span class="font-bold text-orange-500">出発</span></div>
+                            </div>
+                        </div>`;
+                    }
+
+                } else if (item.type === 'MOVE') {
+                    if (item.mode === 'WAIT') return; 
+
+                    const mKey = item.mode;
+                    const modeLabels = { 'DRIVING_FREE':'車', 'DRIVING_TOLL':'車', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
+                    const icon = { 'DRIVING_FREE':'🚗', 'DRIVING_TOLL':'🚗', 'WALKING':'🚶', 'BICYCLING':'🚲' }[mKey] || '🚗';
+                    const dur = item.duration ? `${item.duration}分` : '00分';
+                    const isToll = (mKey === 'DRIVING_TOLL');
+                    
+                    let trafficText = '';
+                    const buf = item.trafficBuffer || 0;
+                    if (mKey.includes('DRIVING')) {
+                        if (buf > 0) {
+                            trafficText = `<span class="text-[10px] text-orange-600 bg-orange-100 px-1 rounded ml-1">(渋滞考慮+${buf}分)</span>`;
+                        } else {
+                            trafficText = `<span class="text-[10px] text-orange-300 ml-1 font-normal">(渋滞含まず)</span>`;
+                        }
+                    }
+                    
+                    let moveContent = '';
+                    if (isEdit) {
+                        const label = modeLabels[mKey] + (isToll ? '<span class="toll-tag">(有料)</span>' : '');
+                        const bufTag = buf > 0 ? `<span class="text-[10px] text-orange-500 font-bold ml-1">+${buf}m</span>` : '';
+                        moveContent = `
+                        <div class="flex items-center gap-2 text-sm">
+                            <span onclick="openTransportModal(${i})" class="select-box">${icon} ${label.replace(/<[^>]*>?/gm, '')} ${isToll?'(有料)':''} ▼</span>
+                            <span class="text-orange-400">移動 ${dur} ${bufTag}</span>
+                        </div>`;
+                    } else {
+                        let roadsList = '';
+                        if (isToll && item.roads && item.roads.length > 0) {
+                            roadsList = item.roads.map(r => `<div>${r}</div>`).join('');
+                        }
+                        
+                        let navBtn = '';
+                        if (plan.stops[i-1] && plan.stops[i+1]) {
+                             const origin = encodeURIComponent(plan.stops[i-1].location);
+                             const dest = encodeURIComponent(plan.stops[i+1].location);
+                             const tmode = (mKey.includes('DRIVING')) ? 'driving' : (mKey==='WALKING'?'walking':'bicycling');
+                             const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${tmode}`;
+                             navBtn = `<a href="${url}" target="_blank" class="text-[10px] bg-orange-50 text-orange-600 border border-orange-200 px-3 py-1 rounded hover:bg-orange-100 no-print inline-flex items-center gap-1 font-bold whitespace-nowrap">🧭 ナビ</a>`;
+                        }
+                        
+                        const tollTag = isToll ? `<span class="toll-tag">(有料)</span>` : '';
+                        
+                        moveContent = `
+                        <div>
+                            <div class="text-sm font-bold text-orange-500 flex items-center mb-1">
+                                ${icon} ${modeLabels[mKey]}${tollTag}移動 <span class="text-orange-900 font-normal ml-1">${dur}</span>${trafficText}
+                            </div>
+                            <div class="flex gap-4 items-start">
+                                <div class="flex-shrink-0 pt-1">${navBtn}</div>
+                                <div class="text-xs text-orange-400 leading-relaxed min-w-0 break-words font-bold">
+                                    ${roadsList}
+                                </div>
+                            </div>
+                        </div>`;
+                    }
+
+                    html += `
+                    <div class="timeline-item timeline-container pb-4">
+                        <div class="timeline-line"></div>
+                        <div class="pl-[36px]">${moveContent}</div>
+                    </div>`;
+                }
+            });
+
+            html += `</div>`; 
+            html += mapContainerHtml; 
+            html += `</div>`; 
+
+            let footer = '';
+            if (isSample) {
+                footer = `<div class="mt-8 text-center pb-8 no-print"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition transform">✨ 新しくマイ「旅のしおり」をつくる</button></div>`;
+            } else if (isEdit) {
+                footer = `
+                <div class="mt-8 space-y-4 text-center pb-8 no-print">
+                    <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-orange-200 text-orange-300 font-bold rounded-xl hover:border-orange-500 hover:text-orange-500 transition">+ 地点を追加</button>
+                    <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:opacity-90 transition">✨ 旅のしおりをつくる</button>
+                </div>`;
+            } else { 
+                footer = `
+                <div class="mt-8 no-print space-y-4 pb-8">
+                    <div class="flex gap-2">
+                        <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-orange-100 text-orange-700 font-bold py-3 rounded-xl hover:bg-orange-200">修正する</button>
+                        <button ontouchstart="triggerPrint()" onclick="triggerPrint()" class="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl hover:bg-orange-700 active:bg-orange-800 shadow-lg">📄 PDF / 印刷</button>
+                        <button onclick="saveCurrentPlan()" class="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl hover:bg-orange-700">保存する</button>
+                    </div>
+                </div>`;
+            }
+
+            document.getElementById('app-content').innerHTML = html + footer;
+            
+            if(!isEdit) setTimeout(initFullMap, 800); 
+        }
+
+        function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
+        
+        function copySampleToEdit() {
+            const sample = getSampleData();
+            editingPlan = {
+                id: 'plan_' + Date.now(), name: '新規旅程プラン', baseTime: sample.baseTime, rounding: 0,
+                stops: sample.stops.map(s => {
+                    if (s.type === 'MOVE') return { ...s, duration: 0, roads:[], trafficBuffer: 0 };
+                    let r = ''; if (s.stayReason === '昼食') r = '昼食';
+                    let m = ''; if (s.memo && s.memo.includes('なめろう')) m = s.memo;
+                    return { ...s, name:'', location:'', confirmed:false, stayReason:r, memo:m, timeStr:'00:00', depTimeStr:'00:00' };
+                })
+            };
+            editingPlan.stops[0].name = '（出発地と同じ）';
+            mode = 'EDIT'; renderTimeline();
+        }
+        function startNewEdit() { copySampleToEdit(); }
+
+        function addNextStop() {
+            editingPlan.stops.push({ type:'MOVE', mode:'DRIVING_FREE', duration:0, trafficBuffer:0 });
+            editingPlan.stops.push({ type:'STOP', name:'', location:'', confirmed:false, stayTime:20, stayReason:'', memo:'', isBase:false, timeStr:'00:00' });
+            renderTimeline();
+        }
+        function deleteStop(idx) {
+            if(idx <= 2 || idx === editingPlan.stops.length-1) { alert('この地点は削除できません'); return; }
+            editingPlan.stops.splice(idx-1, 2); renderTimeline();
+        }
+        function moveStop(idx, dir) {
+            if (idx <= 2) return; 
+            const moveIdx = idx - 1; 
+            if (dir === -1) { 
+                if (moveIdx <= 2) return; 
+                const selfSet = editingPlan.stops.splice(moveIdx, 2); 
+                editingPlan.stops.splice(moveIdx - 2, 0, ...selfSet);
+            } else { 
+                if (idx >= editingPlan.stops.length - 2) return;
+                const selfSet = editingPlan.stops.splice(moveIdx, 2);
+                editingPlan.stops.splice(moveIdx + 2, 0, ...selfSet);
+            }
+            renderTimeline();
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function openLocationModal(idx) {
+            editingIndex = idx;
+            const item = editingPlan.stops[idx];
+            document.getElementById('input-loc-name').value = item.name;
+            document.getElementById('loc-search-res').textContent = item.confirmed ? `※確定済: ${item.location}` : '※確定を押して住所を確認してください';
+            tempLocationData = item.confirmed ? item.location : null;
+            openModal('modal-location');
+        }
+        function validateLocation() {
+            const val = document.getElementById('input-loc-name').value;
+            if(!val) return;
+            const svc = new google.maps.places.AutocompleteService();
+            svc.getPlacePredictions({ input: val }, (preds, status) => {
+                const el = document.getElementById('loc-search-res');
+                if (status === 'OK' && preds.length > 0) {
+                    tempLocationData = preds[0].description;
+                    el.innerHTML = `<span class="text-orange-600">✅ OK: ${tempLocationData}</span>`;
+                } else {
+                    tempLocationData = null;
+                    el.innerHTML = `<span class="text-orange-300">❌ 見つかりません</span>`;
+                }
+            });
+        }
+        function saveToDictionary() {
+            const val = document.getElementById('input-loc-name').value;
+            if(val && !savedLocations.includes(val)) {
+                savedLocations.push(val);
+                localStorage.setItem('savedLocations_v2', JSON.stringify(savedLocations));
+                updateDatalist();
+                alert('辞書に保存しました');
+            }
+        }
+        function confirmLocation() {
+            if(!tempLocationData) { alert('確定を行ってください'); return; }
+            const item = editingPlan.stops[editingIndex];
+            item.name = document.getElementById('input-loc-name').value;
+            item.location = tempLocationData;
+            item.confirmed = true;
+            if (editingIndex === 2) {
+                const meet = editingPlan.stops[0];
+                meet.name = item.name;
+                meet.location = item.location;
+                meet.confirmed = true;
+            }
+            closeModal('modal-location');
+            renderTimeline();
+        }
+
+        function openTransportModal(idx) { 
+            editingIndex = idx; 
+            const item = editingPlan.stops[idx];
+            document.getElementById('input-transport').value = item.mode; 
+            document.getElementById('input-traffic-buffer').value = item.trafficBuffer || 0;
+            openModal('modal-transport'); 
+        }
+        function confirmTransport() { 
+            const item = editingPlan.stops[editingIndex];
+            item.mode = document.getElementById('input-transport').value; 
+            item.trafficBuffer = parseInt(document.getElementById('input-traffic-buffer').value);
+            closeModal('modal-transport'); 
+            renderTimeline(); 
+        }
+
+        function openStayModal(idx) { 
+            editingIndex = idx; const item = editingPlan.stops[idx]; 
+            document.getElementById('input-stay-reason').value = item.stayReason; 
+            document.getElementById('input-stay-time').value = item.stayTime; 
+            document.getElementById('input-is-base').checked = item.isBase; 
+            openModal('modal-stay'); 
+        }
+        function confirmStay() {
+            const item = editingPlan.stops[editingIndex];
+            item.stayReason = document.getElementById('input-stay-reason').value;
+            item.stayTime = parseInt(document.getElementById('input-stay-time').value);
+            if(document.getElementById('input-is-base').checked) {
+                editingPlan.stops.forEach(s => { if(s.type==='STOP') s.isBase = false; });
+                item.isBase = true;
+            } else { item.isBase = false; }
+            closeModal('modal-stay'); renderTimeline();
+        }
+        function openMemoModal(idx) { editingIndex = idx; document.getElementById('input-memo').value = editingPlan.stops[idx].memo; openModal('modal-memo'); }
+        function confirmMemo() { editingPlan.stops[editingIndex].memo = document.getElementById('input-memo').value; closeModal('modal-memo'); renderTimeline(); }
+
+        function openFinalizeModal() {
+            const invalid = editingPlan.stops.filter(s => s.type==='STOP' && !s.confirmed && s.name !== '（出発地と同じ）');
+            if(invalid.length > 0) { alert('未確定の地点があります'); return; }
+            const hasBase = editingPlan.stops.some(s => s.type==='STOP' && s.isBase);
+            if(!hasBase) { alert('時間の基点（★）が設定されていません'); return; }
+            const d = new Date(); d.setDate(d.getDate()+1); d.setHours(8,0,0,0);
+            const iso = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+            document.getElementById('final-base-time').value = iso;
+            openModal('modal-finalize');
+        }
+
+        async function executeCalculation() {
+            editingPlan.name = document.getElementById('final-plan-name').value;
+            editingPlan.baseTime = document.getElementById('final-base-time').value;
+            editingPlan.rounding = parseInt(document.getElementById('final-rounding').value);
+            closeModal('modal-finalize');
+            document.getElementById('app-content').innerHTML = '<div class="text-center p-20"><div class="text-3xl animate-bounce">🚗</div><div class="mt-4 font-bold text-orange-400">ルート計算中...</div></div>';
+            const ds = new google.maps.DirectionsService();
+            
+            for(let i=0; i<editingPlan.stops.length; i++) {
+                const item = editingPlan.stops[i];
+                if (item.type === 'MOVE') {
+                    if (item.mode === 'WAIT') continue; 
+                    const start = editingPlan.stops[i-1].location; const end = editingPlan.stops[i+1].location;
+                    let gMode = 'DRIVING'; let avoidTolls = false;
+                    if(item.mode === 'DRIVING_FREE') avoidTolls = true; else if(item.mode === 'DRIVING_TOLL') avoidTolls = false; else gMode = item.mode;
+                    
+                    try {
+                        const res = await new Promise(resolve => ds.route({ origin: start, destination: end, travelMode: gMode, avoidTolls: avoidTolls }, (r, s) => resolve(s==='OK'?r:null)));
+                        
+                        if (res) {
+                            const leg = res.routes[0].legs[0]; 
+                            const apiDuration = Math.ceil(leg.duration.value / 60);
+                            const buffer = item.trafficBuffer || 0;
+                            item.duration = apiDuration + buffer;
+
+                            let roads = [];
+                            if (gMode === 'DRIVING' && item.mode === 'DRIVING_TOLL') {
+                                leg.steps.forEach(s => {
+                                    const rawTxt = s.instructions.replace(/<[^>]*>/g, ' ').replace(/[（(].*?[)）]/g, '');
+                                    const tokens = rawTxt.split(/[\/\s、,]+/);
+                                    tokens.forEach(t => {
+                                        const clean = t.trim();
+                                        if (
+                                            clean.match(/(高速|自動車道|スカイライン|有料道路|ライン|京葉道路|アクアライン)/) &&
+                                            !clean.match(/^(右折|左折|直進|斜め|方向|ランプ|入口|出口|JCT|IC|インター)$/)
+                                        ) {
+                                            if (clean.length > 2 && !clean.includes('方面')) {
+                                                roads.push(clean);
+                                            }
+                                        }
+                                    });
+                                });
+                                item.roads = [...new Set(roads)];
+                            } else {
+                                item.roads = [];
+                            }
+                        } else { item.duration = 0; }
+                    } catch(e) { item.duration = 0; }
+                }
+            }
+            calculateSchedule();
+            mode = 'RESULT'; renderTimeline();
+        }
+
+        function calculateSchedule() {
+            const stops = editingPlan.stops;
+            const baseIdx = stops.findIndex(s => s.type==='STOP' && s.isBase);
+            const round = editingPlan.rounding;
+            const addMin = (d, m) => new Date(d.getTime() + m*60000);
+            const roundUp = (d) => {
+                if(!round) return d;
+                const m = d.getMinutes(); const r = m % round;
+                return r===0 ? d : addMin(d, round - r);
+            };
+            const roundDown = (d) => {
+                if(!round) return d;
+                const m = d.getMinutes(); const r = m % round;
+                return r===0 ? d : addMin(d, -r);
+            };
+            const fmt = (d) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+
+            let t = new Date(editingPlan.baseTime);
+            stops[baseIdx].arrTime = t; 
+            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime));
+            
+            for(let i=baseIdx+1; i<stops.length; i++) {
+                if(stops[i].type === 'STOP') {
+                    const prevMove = stops[i-1];
+                    const prevStop = stops[i-2];
+                    const arrRaw = addMin(prevStop.depTime, prevMove.duration || 0);
+                    const arrRounded = roundUp(arrRaw);
+                    stops[i].arrTime = arrRounded;
+                    stops[i].depTime = roundUp(addMin(arrRounded, stops[i].stayTime));
+                }
+            }
+            t = stops[baseIdx].arrTime;
+            for(let i=baseIdx-1; i>=0; i--) {
+                if(stops[i].type === 'STOP') {
+                    const nextMove = stops[i+1];
+                    const nextStop = stops[i+2]; 
+                    if (nextMove.mode === 'WAIT') {
+                        stops[i].depTime = nextStop.arrTime; 
+                        stops[i].arrTime = addMin(stops[i].depTime, -20);
+                    } else {
+                        const depRaw = addMin(nextStop.arrTime, -(nextMove.duration||0));
+                        stops[i].depTime = roundDown(depRaw);
+                        stops[i].arrTime = addMin(stops[i].depTime, -stops[i].stayTime);
+                    }
+                }
+            }
+            stops.forEach(s => { if(s.type==='STOP') { s.timeStr = fmt(s.arrTime); s.depTimeStr = fmt(s.depTime); } });
+        }
+
+        function initFullMap() {
+            const div = document.getElementById('full-map-area'); if(!div) return;
+            const map = new google.maps.Map(div, {zoom: 9, center: {lat:35.681, lng:139.767}, disableDefaultUI: true});
+            const renderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: false, polylineOptions:{strokeColor:'#F57C00', strokeWeight:4} });
+            const pts = editingPlan.stops.slice(2).filter(s => s.type === 'STOP').map(s => ({ location: s.location, stopover: true }));
+            if(pts.length < 2) return;
+            new google.maps.DirectionsService().route({ origin: pts[0].location, destination: pts[pts.length-1].location, waypoints: pts.slice(1, pts.length-1), travelMode: 'DRIVING' }, (res, status) => { if(status==='OK') renderer.setDirections(res); });
+        }
+
+        function updateDatalist() { const l=document.getElementById('saved-locations-list'); if(l) l.innerHTML=savedLocations.map(x=>`<option value="${x}">`).join(''); }
+        function goHome() { if(mode==='EDIT' && !confirm('破棄しますか？')) return; renderDashboard(); }
+        function saveCurrentPlan() {
+            editingPlan.updatedAt = new Date().toISOString();
+            const idx = savedPlans.findIndex(p => p.id === editingPlan.id);
+            if(idx >= 0) savedPlans[idx] = editingPlan; else savedPlans.unshift(editingPlan);
+            localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans));
+            alert('保存しました'); renderDashboard();
+        }
+        function deletePlan(i) { if(!confirm('削除しますか？')) return; savedPlans.splice(i, 1); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); renderDashboard(); }
+        function openPlan(i) { editingPlan = savedPlans[i]; mode = 'RESULT'; renderTimeline(); }
+        function checkUrlImport() {
+            const p = new URLSearchParams(location.search); const d = p.get('d');
+            if(d) { try { const json = LZString.decompressFromEncodedURIComponent(d); if(json) { const plan = JSON.parse(json); plan.id = 'import_'+Date.now(); savedPlans.unshift(plan); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); alert('共有プランを読み込みました'); history.replaceState(null, '', location.pathname); } } catch(e){} }
+        }
+        function sharePlan(i) {
+            const plan = savedPlans[i]; const cleanPlan = JSON.parse(JSON.stringify(plan));
+            cleanPlan.stops.forEach(s => { delete s.arrTime; delete s.depTime; });
+            const json = JSON.stringify(cleanPlan); const compressed = LZString.compressToEncodedURIComponent(json);
+            const url = `${location.origin}${location.pathname}?d=${compressed}`;
+            if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>alert('共有URLをコピーしました')); else prompt('URLをコピー:', url);
+        }
+    </script>
+</body>
+</html>
