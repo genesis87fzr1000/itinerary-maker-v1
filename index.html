@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1</title>
+    <title>旅のしおりメーカー v5.4.1.7</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,10 +14,7 @@
         .font-bold { font-weight: 400 !important; }
         .text-sm { font-size: 1.2rem !important; line-height: 2rem !important; }
 
-        /* --- 追加：特定の入力箇所のサイズ調整 (-15%) --- */
-        .text-input-small {
-            font-size: 1.02rem !important; /* 1.2rem * 0.85 */
-        }
+        .text-input-small { font-size: 1.02rem !important; }
 
         body { 
             font-family: 'Inter', sans-serif; 
@@ -56,8 +53,6 @@
             min-width: 60px; text-align: center;
         }
         .input-hole.filled { border-bottom: none; color: #4E2600; pointer-events: auto; text-align: left; min-width: auto; } 
-        
-        /* --- 追加：入力後に明るいオレンジにするスタイル --- */
         .filled-orange { color: #f97316 !important; }
 
         .input-readonly { color: #4E2600; border-bottom: none; pointer-events: none; }
@@ -69,7 +64,13 @@
         }
         .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #F57C00; }
         .modal-bg { background-color: rgba(78, 38, 0, 0.5); }
+
         
+        
+        /* SVGアイコン用の共通クラス */
+        .icon-svg { display: inline-block; vertical-align: middle; height: 1.2em; width: auto; }
+        .icon-svg-large { height: 1.5em; }
+
         @media print {
             .no-print, .ad-banner, header { display: none !important; }
             body { background-color: #fff !important; padding: 0 !important; margin: 0 !important; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -84,17 +85,40 @@
 </head>
 <body class="flex flex-col items-center min-h-screen">
 
-    <div class="ad-banner ad-top no-print"><span>広告枠 (Top) 320x50 / 320x100</span></div>
+    <div class="ad-banner ad-top no-print">
+        <span>広告枠 (Top) 320x50 / 320x100</span>
+    </div>
 
     <header class="w-full bg-orange-600 text-white shadow-md z-40 no-print" style="position: sticky; top: 60px;">
-        <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-end">
-            <div>
-                <p class="text-[10px] text-orange-200 font-bold mb-0.5">複数個所巡りプラン簡単作成</p>
-                <h1 class="text-lg font-extrabold flex items-center gap-2 cursor-pointer" onclick="goHome()">
-                    <span>📖</span> 旅のしおりメーカー <span class="text-[10px] bg-orange-500 px-1.5 py-0.5 rounded">v5.4.1</span>
-                </h1>
+        <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-1 cursor-pointer overflow-hidden" onclick="goHome()">
+                <svg class="w-[60px] h-[38px] sm:w-[80px] sm:h-[50px]" viewBox="0 0 196 131" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <path d="M98,99L98,131L0,131L0,0L98,0L98,23L195.846,23L195.846,99L98,99Z" style="fill:rgb(244,244,244);"/>
+                </svg>
+                <svg class="w-[180px] h-[45px] sm:w-[260px] sm:h-[60px]" viewBox="0 0 621 111" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <g transform="matrix(1,0,0,1,-855.794,-452.32)">
+                        <g transform="matrix(1,0,0,1,36,0)">
+                            <g transform="matrix(1,0,0,1,132,180.858)">
+                                <text x="686px" y="376.125px" style="font-family:'Inter', sans-serif;font-weight:800;font-size:70.833px;fill:white;">旅のしおりメーカー</text>
+                            </g>
+                        </g>
+                        <g transform="matrix(1,0,0,1,36,0)">
+                            <g transform="matrix(1,0,0,1,132,130.858)">
+                                <text x="686px" y="352.846px" style="font-family:'Inter', sans-serif;font-size:37.5px;fill:white;">複数個所巡りプラン簡単作成</text>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+                <span class="hidden sm:inline-block text-[10px] bg-orange-500 px-1.5 py-0.5 rounded self-end mb-1">v5.4.1</span>
             </div>
-            <button onclick="goHome()" class="text-xs bg-orange-700 hover:bg-orange-800 px-3 py-1.5 rounded text-white font-bold transition">🏠 マイページ</button>
+            
+            <button onclick="goHome()" class="flex flex-col items-center justify-center text-white hover:opacity-80 transition-opacity flex-shrink-0 ml-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="hidden sm:block" style="font-size: 10px; font-weight: bold; margin-top: 2px;">マイページ</span>
+            </button>
         </div>
     </header>
 
@@ -104,7 +128,9 @@
 
     <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
-            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">📍 地点・施設名の入力</h3>
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
+                <span id="icon-loc-title"></span> 地点・施設名の入力
+            </h3>
             <div class="flex gap-2 mb-2">
                 <input type="text" id="input-loc-name" list="saved-locations-list" class="flex-1 p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 東京駅">
                 <button onclick="validateLocation()" class="bg-orange-100 text-orange-700 px-3 rounded font-bold whitespace-nowrap">確定</button>
@@ -122,14 +148,52 @@
 
     <div id="modal-transport" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">🚗 移動手段・渋滞設定</h3>
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
+                <span id="icon-trans-title"></span> 移動手段・渋滞設定
+            </h3>
+            
             <label class="block text-xs font-bold text-orange-400 mb-1">移動モード</label>
-            <select id="input-transport" class="w-full p-3 border border-orange-200 rounded text-lg font-bold mb-4" style="color:#f97316;">
-                <option value="DRIVING_TOLL">🏎️ 車（有料優先）</option>
-                <option value="DRIVING_FREE">🚙 車（無料優先）</option>
-                <option value="WALKING">🚶 徒歩</option>
-                <option value="BICYCLING">🚲 自転車</option>
-            </select>
+            
+            <div class="relative mb-4">
+                <input type="hidden" id="input-transport" value="DRIVING_TOLL">
+                
+                <div id="custom-select-trigger" onclick="toggleCustomSelect()" class="w-full p-3 border border-orange-200 rounded text-lg font-bold flex items-center justify-between cursor-pointer bg-white" style="color:#f97316;">
+                    <div id="selected-display" class="flex items-center gap-2">
+                        <span class="w-8 h-5 flex items-center">
+                            <svg viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-915.342,-1239.65)"><g transform="matrix(1,0,0,1,36,200)"><g transform="matrix(-1.21776,0,0,1.21776,1751.24,-547.655)"><g transform="matrix(0.708705,0,0,0.708705,704.014,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.708705,0,0,0.708705,674.749,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.481471,0,0,0.704256,718.598,1308.96)"><path d="M-75.115,5.006L-73.071,-4.836C-73.071,-4.836 -61.052,-5.324 -53.399,-1.253C-53.399,-1.253 -41.734,4.24 -42.073,4.431C-44.173,5.616 -48.851,6.27 -54.04,6.096C-65.366,5.715 -75.115,5.006 -75.115,5.006ZM-80.734,4.286L-96.526,3.836L-98.24,0.937C-91.405,-4.037 -77.49,-4.859 -77.49,-4.859L-80.734,4.286ZM-20.362,6.234C-30.639,4.532 -37.593,2.928 -37.593,2.928L-51.742,-3.967C-59.711,-7.239 -66.893,-7.396 -74.431,-7.755C-91.966,-8.59 -107.687,0.276 -107.687,0.276C-107.687,0.276 -119.883,4.265 -119.883,5.978L-115.478,18.264C-114.518,20.511 -113.131,21.18 -111.841,21.9L-106.209,25.095C-106.32,24.447 -106.38,23.779 -106.38,23.099C-106.38,16.494 -100.731,12.277 -91.07,12.277C-82.387,12.277 -75.219,16.383 -75.219,22.988C-75.219,23.668 -75.282,25.776 -75.391,26.424L-45.208,25.958C-45.317,25.31 -45.378,23.17 -45.378,22.49C-45.378,15.885 -36.891,12.277 -30.288,12.277C-23.68,12.277 -14.609,15.885 -14.609,22.49C-14.609,23.17 -14.43,25.038 -14.537,25.686L-10.027,25.668C-4.901,25.188 -5.447,19.673 -5.447,17.665C-5.447,17.665 -6.155,14.843 -7.607,12.976C-10.852,8.804 -14.923,7.135 -20.362,6.234Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
+                        </span>
+                        <span>車（有料優先）</span>
+                    </div>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                
+                <div id="custom-options" class="hidden absolute left-0 right-0 mt-1 bg-white border border-orange-200 rounded shadow-xl z-50 overflow-hidden">
+                    <div onclick="selectOption('DRIVING_TOLL', '車（有料優先）', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
+                        <span class="w-8 h-5 flex items-center">
+                            <svg width="100%" height="100%" viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-915.342,-1239.65)"><g transform="matrix(1,0,0,1,36,200)"><g transform="matrix(-1.21776,0,0,1.21776,1751.24,-547.655)"><g transform="matrix(0.708705,0,0,0.708705,704.014,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.708705,0,0,0.708705,674.749,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.481471,0,0,0.704256,718.598,1308.96)"><path d="M-75.115,5.006L-73.071,-4.836C-73.071,-4.836 -61.052,-5.324 -53.399,-1.253C-53.399,-1.253 -41.734,4.24 -42.073,4.431C-44.173,5.616 -48.851,6.27 -54.04,6.096C-65.366,5.715 -75.115,5.006 -75.115,5.006ZM-80.734,4.286L-96.526,3.836L-98.24,0.937C-91.405,-4.037 -77.49,-4.859 -77.49,-4.859L-80.734,4.286ZM-20.362,6.234C-30.639,4.532 -37.593,2.928 -37.593,2.928L-51.742,-3.967C-59.711,-7.239 -66.893,-7.396 -74.431,-7.755C-91.966,-8.59 -107.687,0.276 -107.687,0.276C-107.687,0.276 -119.883,4.265 -119.883,5.978L-115.478,18.264C-114.518,20.511 -113.131,21.18 -111.841,21.9L-106.209,25.095C-106.32,24.447 -106.38,23.779 -106.38,23.099C-106.38,16.494 -100.731,12.277 -91.07,12.277C-82.387,12.277 -75.219,16.383 -75.219,22.988C-75.219,23.668 -75.282,25.776 -75.391,26.424L-45.208,25.958C-45.317,25.31 -45.378,23.17 -45.378,22.49C-45.378,15.885 -36.891,12.277 -30.288,12.277C-23.68,12.277 -14.609,15.885 -14.609,22.49C-14.609,23.17 -14.43,25.038 -14.537,25.686L-10.027,25.668C-4.901,25.188 -5.447,19.673 -5.447,17.665C-5.447,17.665 -6.155,14.843 -7.607,12.976C-10.852,8.804 -14.923,7.135 -20.362,6.234Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
+                        </span>
+                        <span>車（有料優先）</span>
+                    </div>
+                    <div onclick="selectOption('DRIVING_FREE', '車（無料優先）', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
+                        <span class="w-8 h-5 flex items-center">
+                            <svg width="100%" height="100%" viewBox="0 0 67 44" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-916.331,-1802.04)"><g transform="matrix(1,0,0,1,36,280)"><g transform="matrix(-0.780381,0,0,0.788641,1451.49,514.33)"><g transform="matrix(0.752593,0,0,0.752593,666.472,1317.06)"><path d="M0,13.242C-3.656,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.656,0.002 0,0.002C3.654,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.654,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.924,20.99 14.367,14.545 14.367,6.623C14.367,-1.303 7.924,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,709.877,1317.06)"><path d="M0,13.242C-3.654,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.654,0.002 0,0.002C3.656,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.656,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.926,20.99 14.369,14.545 14.369,6.623C14.369,-1.303 7.926,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,666.472,1323.76)"><path d="M0,-4.539C1.254,-4.539 2.27,-3.523 2.27,-2.268C2.27,-1.016 1.254,0 0,0C-1.254,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.254,-4.539 0,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,709.878,1323.76)"><path d="M0.001,-4.539C1.255,-4.539 2.271,-3.523 2.271,-2.268C2.271,-1.016 1.255,0 0.001,0C-1.253,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.253,-4.539 0.001,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,706.498,1305.58)"><path d="M0,-16.964C-0.084,-16.72 -0.313,-16.554 -0.572,-16.554L-30.439,-16.554L-30.439,-31.847L-24.52,-31.847C-20.924,-31.847 -17.365,-30.652 -14.5,-28.48L-0.209,-17.636C-0.002,-17.48 0.08,-17.208 0,-16.964M-14.846,-5.358L-21.592,-5.358C-22.076,-5.358 -22.467,-5.751 -22.467,-6.233C-22.467,-6.715 -22.076,-7.108 -21.592,-7.108L-14.846,-7.108C-14.361,-7.108 -13.971,-6.715 -13.971,-6.233C-13.971,-5.751 -14.361,-5.358 -14.846,-5.358M-72.523,-16.554C-73.189,-16.554 -73.727,-17.093 -73.727,-17.757L-73.727,-27.312C-73.727,-29.812 -71.691,-31.847 -69.191,-31.847L-34.404,-31.847L-34.404,-16.554L-72.523,-16.554ZM27.898,-14.288L7.41,-18.253L-11.418,-32.538C-15.188,-35.398 -19.787,-36.946 -24.52,-36.946L-69.191,-36.946C-74.512,-36.946 -78.826,-32.632 -78.826,-27.312L-78.826,15.163C-78.826,17.824 -76.668,19.982 -74.008,19.982L-70.219,19.982C-69.27,11.419 -61.994,4.738 -53.184,4.738C-44.373,4.738 -37.098,11.419 -36.148,19.982L-12.545,19.982C-11.596,11.419 -4.318,4.738 4.49,4.738C13.301,4.738 20.578,11.419 21.525,19.982L28.934,19.982C31.594,19.982 33.75,17.824 33.75,15.163L33.75,-7.194C33.75,-10.655 31.295,-13.632 27.898,-14.288" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
+                        </span>
+                        <span>車（無料優先）</span>
+                    </div>
+                    <div onclick="selectOption('WALKING', '徒歩', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
+                        <span class="w-8 h-5 flex items-center">
+                            <svg width="100%" height="100%" viewBox="0 0 24 35" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-562.258,-1245.25)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.690342,0,0,0.690342,42.1505,383.895)"><g transform="matrix(0.390332,0,0,0.390332,716.64,1189.77)"><path d="M0,24.759C6.839,24.759 12.381,19.217 12.381,12.381C12.381,5.542 6.839,0 0,0C-6.838,0 -12.381,5.542 -12.381,12.381C-12.381,19.217 -6.838,24.759 0,24.759" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.390332,0,0,0.390332,735.011,1228.05)"><path d="M0,-37.782L-8.21,-50.126C-10.203,-53.043 -12.848,-55.458 -15.93,-57.185L-32.029,-66.201C-34.979,-67.58 -37.21,-68.457 -40.013,-68.079L-47.716,-67.032C-50.589,-66.642 -53.208,-65.179 -55.044,-62.938L-69.707,-47.333L-83.136,-42.384C-85.68,-41.447 -87.046,-38.683 -86.242,-36.093L-86.179,-35.895C-85.389,-33.349 -82.766,-31.845 -80.169,-32.443L-69.224,-34.97C-66.495,-35.599 -63.902,-36.723 -61.582,-38.288L-53.971,-43.407L-51.282,-22.972C-51.086,-21.472 -51.388,-19.951 -52.142,-18.638L-74.932,20.944C-76.557,23.764 -75.595,27.368 -72.783,29.01L-72.587,29.124C-69.925,30.675 -66.519,29.926 -64.755,27.402L-39.281,-9.036L-31.564,6.371C-30.992,7.509 -30.236,8.544 -29.325,9.433L-12.204,26.174C-10.043,28.284 -6.625,28.378 -4.356,26.389L-4.082,26.152C-2.919,25.132 -2.212,23.691 -2.12,22.148C-2.028,20.605 -2.556,19.088 -3.59,17.94L-18.047,1.836L-25.9,-26.588L-25.929,-26.564L-28.182,-48.801L-20.222,-45.219L-7.492,-31.82C-5.891,-30.135 -3.299,-29.863 -1.386,-31.183L-1.255,-31.273C0.87,-32.736 1.429,-35.633 0,-37.782" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
+                        </span>
+                        <span>徒歩</span>
+                    </div>
+                    <div onclick="selectOption('BICYCLING', '自転車', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
+                        <span class="w-8 h-5 flex items-center">
+                            <svg width="100%" height="100%" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-553.349,-1303.65)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.805192,0,0,0.805192,164.22,237.993)"><g transform="matrix(0.401036,0,0,0.401036,448.306,1292.75)"><path d="M0,61.994C-9.723,61.994 -17.631,54.084 -17.631,44.361C-17.631,34.636 -9.723,26.725 0,26.725C0.656,26.725 1.299,26.768 1.936,26.838L-1.736,43.514L2.509,44.448L6.161,27.859C12.851,30.365 17.635,36.805 17.635,44.361C17.635,54.084 9.723,61.994 0,61.994M7.605,21.307L13.556,-5.72L9.311,-6.654L3.368,20.333C2.265,20.178 1.146,20.071 0,20.071C-13.395,20.071 -24.289,30.966 -24.289,44.361C-24.289,57.753 -13.395,68.648 0,68.648C13.393,68.648 24.289,57.753 24.289,44.361C24.289,33.623 17.281,24.507 7.605,21.307" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,480.158,1303.46)"><path d="M0,35.269C-9.241,35.269 -16.831,28.121 -17.563,19.066L-0.433,19.066L-0.433,14.719L-17.374,14.719C-15.978,6.38 -8.73,-0 0,-0C9.723,-0 17.633,7.911 17.633,17.636C17.633,27.359 9.723,35.269 0,35.269M0,-6.654C-12.406,-6.654 -22.649,2.698 -24.096,14.719L-28.687,14.719L-28.687,19.066L-24.217,19.066C-23.47,31.792 -12.911,41.923 0,41.923C13.393,41.923 24.287,31.028 24.287,17.636C24.287,4.241 13.393,-6.654 0,-6.654" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,464.193,1293.79)"><path d="M0,25.569L-5.274,17.75C-5.968,16.882 -5.525,16.082 -4.652,15.394C-3.782,14.702 2.498,11.779 2.498,11.779L0,25.569ZM20.804,-4.998L17.283,-23.088C16.74,-27.163 11.124,-31.964 5.33,-29.065L-22.105,-14.993C-23.871,-14.32 -24.754,-12.344 -24.077,-10.581C-23.404,-8.813 -21.428,-7.928 -19.666,-8.6L-0.106,-14.394L2.651,-3.81C2.651,-3.81 -13.301,6.452 -13.959,6.938C-17.245,9.375 -19.637,14.8 -16.442,18.837L-2.507,35.922L-5.497,51.189C-6.153,53.674 -4.671,56.221 -2.188,56.877C0.295,57.533 2.842,56.051 3.5,53.566L18.005,14.04C20.125,9.23 22.706,2.422 20.804,-4.998" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.399233,-0.0379867,-0.0379867,-0.399233,466.391,1280.66)"><path d="M-0.817,-0.038C3.95,-0.038 7.815,3.824 7.811,8.587C7.815,13.352 3.951,17.215 -0.817,17.212C-5.58,17.213 -9.442,13.351 -9.441,8.583C-9.442,3.825 -5.583,-0.041 -0.817,-0.038" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
+                        </span>
+                        <span>自転車</span>
+                    </div>
+                </div>
+            </div>
             <label class="block text-xs font-bold text-orange-400 mb-1">渋滞考慮 (余裕をもたせる)</label>
             <div class="bg-orange-50 p-3 rounded border border-orange-100 mb-6">
                 <select id="input-traffic-buffer" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
@@ -139,13 +203,58 @@
                     <option value="30">＋30分 の余裕を足す</option>
                 </select>
             </div>
-            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-transport')" class="px-4 py-2 text-orange-400">キャンセル</button><button onclick="confirmTransport()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button></div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-transport')" class="px-4 py-2 text-orange-400">キャンセル</button>
+                <button onclick="confirmTransport()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button>
+            </div>
         </div>
     </div>
 
+    <script>
+        /**
+         * カスタムセレクトボックスの開閉切り替え
+         */
+        function toggleCustomSelect() {
+            const options = document.getElementById('custom-options');
+            options.classList.toggle('hidden');
+        }
+
+        /**
+         * オプション選択時の処理
+         * @param {string} value - 送信用の値 (DRIVING_TOLL等)
+         * @param {string} label - 表示用のテキスト
+         * @param {HTMLElement} element - クリックされた要素
+         */
+        function selectOption(value, label, element) {
+            // 隠し入力値を更新 (既存のJSがここを参照する)
+            document.getElementById('input-transport').value = value;
+            
+            // 表示を更新
+            const iconHtml = element.querySelector('span').innerHTML;
+            document.getElementById('selected-display').innerHTML = `
+                <span class="w-8 h-5 flex items-center">${iconHtml}</span>
+                <span>${label}</span>
+            `;
+            
+            // リストを閉じる
+            document.getElementById('custom-options').classList.add('hidden');
+        }
+
+        // モーダル外をクリックした時にリストを閉じる処理
+        window.addEventListener('click', function(e) {
+            const trigger = document.getElementById('custom-select-trigger');
+            const options = document.getElementById('custom-options');
+            if (trigger && !trigger.contains(e.target) && !options.contains(e.target)) {
+                options.classList.add('hidden');
+            }
+        });
+    </script>
+
     <div id="modal-stay" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">⏳ 滞在・基点設定</h3>
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
+                <span id="icon-stay-title"></span> 滞在・基点設定
+            </h3>
             <div class="mb-3">
                 <label class="block text-xs font-bold text-orange-400">滞在理由</label>
                 <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 昼食">
@@ -170,7 +279,9 @@
 
     <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4" style="color:#f97316;">📝 メモ入力</h3>
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
+                <span id="icon-memo-title"></span> メモ入力
+            </h3>
             <textarea id="input-memo" rows="3" class="w-full p-3 border border-orange-200 rounded mb-4" style="color:#f97316;" placeholder="メモを入力..."></textarea>
             <div class="flex justify-end gap-2"><button onclick="closeModal('modal-memo')" class="px-4 py-2 text-orange-400">キャンセル</button><button onclick="confirmMemo()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button></div>
         </div>
@@ -194,8 +305,15 @@
     <datalist id="saved-locations-list"></datalist>
 
     <script>
-        function initMap() { console.log("API Ready"); }
-        const APP_VERSION = '5.4.1';
+        // --- SVGアイコンの定義 ---
+        const SVG_CAR_TOLL = `<svg class="icon-svg" viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-915.342,-1239.65)"><g transform="matrix(1,0,0,1,36,200)"><g transform="matrix(-1.21776,0,0,1.21776,1751.24,-547.655)"><g transform="matrix(0.708705,0,0,0.708705,704.014,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.708705,0,0,0.708705,674.749,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.481471,0,0,0.704256,718.598,1308.96)"><path d="M-75.115,5.006L-73.071,-4.836C-73.071,-4.836 -61.052,-5.324 -53.399,-1.253C-53.399,-1.253 -41.734,4.24 -42.073,4.431C-44.173,5.616 -48.851,6.27 -54.04,6.096C-65.366,5.715 -75.115,5.006 -75.115,5.006ZM-80.734,4.286L-96.526,3.836L-98.24,0.937C-91.405,-4.037 -77.49,-4.859 -77.49,-4.859L-80.734,4.286ZM-20.362,6.234C-30.639,4.532 -37.593,2.928 -37.593,2.928L-51.742,-3.967C-59.711,-7.239 -66.893,-7.396 -74.431,-7.755C-91.966,-8.59 -107.687,0.276 -107.687,0.276C-107.687,0.276 -119.883,4.265 -119.883,5.978L-115.478,18.264C-114.518,20.511 -113.131,21.18 -111.841,21.9L-106.209,25.095C-106.32,24.447 -106.38,23.779 -106.38,23.099C-106.38,16.494 -100.731,12.277 -91.07,12.277C-82.387,12.277 -75.219,16.383 -75.219,22.988C-75.219,23.668 -75.282,25.776 -75.391,26.424L-45.208,25.958C-45.317,25.31 -45.378,23.17 -45.378,22.49C-45.378,15.885 -36.891,12.277 -30.288,12.277C-23.68,12.277 -14.609,15.885 -14.609,22.49C-14.609,23.17 -14.43,25.038 -14.537,25.686L-10.027,25.668C-4.901,25.188 -5.447,19.673 -5.447,17.665C-5.447,17.665 -6.155,14.843 -7.607,12.976C-10.852,8.804 -14.923,7.135 -20.362,6.234Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
+        const SVG_CAR_FREE = `<svg class="icon-svg" viewBox="0 0 67 44" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-916.331,-1802.04)"><g transform="matrix(1,0,0,1,36,280)"><g transform="matrix(-0.780381,0,0,0.788641,1451.49,514.33)"><g transform="matrix(0.752593,0,0,0.752593,666.472,1317.06)"><path d="M0,13.242C-3.656,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.656,0.002 0,0.002C3.654,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.654,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.924,20.99 14.367,14.545 14.367,6.623C14.367,-1.303 7.924,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,709.877,1317.06)"><path d="M0,13.242C-3.654,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.654,0.002 0,0.002C3.656,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.656,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.926,20.99 14.369,14.545 14.369,6.623C14.369,-1.303 7.926,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,666.472,1323.76)"><path d="M0,-4.539C1.254,-4.539 2.27,-3.523 2.27,-2.268C2.27,-1.016 1.254,0 0,0C-1.254,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.254,-4.539 0,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,709.878,1323.76)"><path d="M0.001,-4.539C1.255,-4.539 2.271,-3.523 2.271,-2.268C2.271,-1.016 1.255,0 0.001,0C-1.253,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.253,-4.539 0.001,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,706.498,1305.58)"><path d="M0,-16.964C-0.084,-16.72 -0.313,-16.554 -0.572,-16.554L-30.439,-16.554L-30.439,-31.847L-24.52,-31.847C-20.924,-31.847 -17.365,-30.652 -14.5,-28.48L-0.209,-17.636C-0.002,-17.48 0.08,-17.208 0,-16.964M-14.846,-5.358L-21.592,-5.358C-22.076,-5.358 -22.467,-5.751 -22.467,-6.233C-22.467,-6.715 -22.076,-7.108 -21.592,-7.108L-14.846,-7.108C-14.361,-7.108 -13.971,-6.715 -13.971,-6.233C-13.971,-5.751 -14.361,-5.358 -14.846,-5.358M-72.523,-16.554C-73.189,-16.554 -73.727,-17.093 -73.727,-17.757L-73.727,-27.312C-73.727,-29.812 -71.691,-31.847 -69.191,-31.847L-34.404,-31.847L-34.404,-16.554L-72.523,-16.554ZM27.898,-14.288L7.41,-18.253L-11.418,-32.538C-15.188,-35.398 -19.787,-36.946 -24.52,-36.946L-69.191,-36.946C-74.512,-36.946 -78.826,-32.632 -78.826,-27.312L-78.826,15.163C-78.826,17.824 -76.668,19.982 -74.008,19.982L-70.219,19.982C-69.27,11.419 -61.994,4.738 -53.184,4.738C-44.373,4.738 -37.098,11.419 -36.148,19.982L-12.545,19.982C-11.596,11.419 -4.318,4.738 4.49,4.738C13.301,4.738 20.578,11.419 21.525,19.982L28.934,19.982C31.594,19.982 33.75,17.824 33.75,15.163L33.75,-7.194C33.75,-10.655 31.295,-13.632 27.898,-14.288" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
+        const SVG_WALK = `<svg class="icon-svg" viewBox="0 0 24 35" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-562.258,-1245.25)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.690342,0,0,0.690342,42.1505,383.895)"><g transform="matrix(0.390332,0,0,0.390332,716.64,1189.77)"><path d="M0,24.759C6.839,24.759 12.381,19.217 12.381,12.381C12.381,5.542 6.839,0 0,0C-6.838,0 -12.381,5.542 -12.381,12.381C-12.381,19.217 -6.838,24.759 0,24.759" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.390332,0,0,0.390332,735.011,1228.05)"><path d="M0,-37.782L-8.21,-50.126C-10.203,-53.043 -12.848,-55.458 -15.93,-57.185L-32.029,-66.201C-34.979,-67.58 -37.21,-68.457 -40.013,-68.079L-47.716,-67.032C-50.589,-66.642 -53.208,-65.179 -55.044,-62.938L-69.707,-47.333L-83.136,-42.384C-85.68,-41.447 -87.046,-38.683 -86.242,-36.093L-86.179,-35.895C-85.389,-33.349 -82.766,-31.845 -80.169,-32.443L-69.224,-34.97C-66.495,-35.599 -63.902,-36.723 -61.582,-38.288L-53.971,-43.407L-51.282,-22.972C-51.086,-21.472 -51.388,-19.951 -52.142,-18.638L-74.932,20.944C-76.557,23.764 -75.595,27.368 -72.783,29.01L-72.587,29.124C-69.925,30.675 -66.519,29.926 -64.755,27.402L-39.281,-9.036L-31.564,6.371C-30.992,7.509 -30.236,8.544 -29.325,9.433L-12.204,26.174C-10.043,28.284 -6.625,28.378 -4.356,26.389L-4.082,26.152C-2.919,25.132 -2.212,23.691 -2.12,22.148C-2.028,20.605 -2.556,19.088 -3.59,17.94L-18.047,1.836L-25.9,-26.588L-25.929,-26.564L-28.182,-48.801L-20.222,-45.219L-7.492,-31.82C-5.891,-30.135 -3.299,-29.863 -1.386,-31.183L-1.255,-31.273C0.87,-32.736 1.429,-35.633 0,-37.782" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
+        const SVG_BIKE = `<svg class="icon-svg" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-553.349,-1303.65)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.805192,0,0,0.805192,164.22,237.993)"><g transform="matrix(0.401036,0,0,0.401036,448.306,1292.75)"><path d="M0,61.994C-9.723,61.994 -17.631,54.084 -17.631,44.361C-17.631,34.636 -9.723,26.725 0,26.725C0.656,26.725 1.299,26.768 1.936,26.838L-1.736,43.514L2.509,44.448L6.161,27.859C12.851,30.365 17.635,36.805 17.635,44.361C17.635,54.084 9.723,61.994 0,61.994M7.605,21.307L13.556,-5.72L9.311,-6.654L3.368,20.333C2.265,20.178 1.146,20.071 0,20.071C-13.395,20.071 -24.289,30.966 -24.289,44.361C-24.289,57.753 -13.395,68.648 0,68.648C13.393,68.648 24.289,57.753 24.289,44.361C24.289,33.623 17.281,24.507 7.605,21.307" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,480.158,1303.46)"><path d="M0,35.269C-9.241,35.269 -16.831,28.121 -17.563,19.066L-0.433,19.066L-0.433,14.719L-17.374,14.719C-15.978,6.38 -8.73,-0 0,-0C9.723,-0 17.633,7.911 17.633,17.636C17.633,27.359 9.723,35.269 0,35.269M0,-6.654C-12.406,-6.654 -22.649,2.698 -24.096,14.719L-28.687,14.719L-28.687,19.066L-24.217,19.066C-23.47,31.792 -12.911,41.923 0,41.923C13.393,41.923 24.287,31.028 24.287,17.636C24.287,4.241 13.393,-6.654 0,-6.654" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,464.193,1293.79)"><path d="M0,25.569L-5.274,17.75C-5.968,16.882 -5.525,16.082 -4.652,15.394C-3.782,14.702 2.498,11.779 2.498,11.779L0,25.569ZM20.804,-4.998L17.283,-23.088C16.74,-27.163 11.124,-31.964 5.33,-29.065L-22.105,-14.993C-23.871,-14.32 -24.754,-12.344 -24.077,-10.581C-23.404,-8.813 -21.428,-7.928 -19.666,-8.6L-0.106,-14.394L2.651,-3.81C2.651,-3.81 -13.301,6.452 -13.959,6.938C-17.245,9.375 -19.637,14.8 -16.442,18.837L-2.507,35.922L-5.497,51.189C-6.153,53.674 -4.671,56.221 -2.188,56.877C0.295,57.533 2.842,56.051 3.5,53.566L18.005,14.04C20.125,9.23 22.706,2.422 20.804,-4.998" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.399233,-0.0379867,-0.0379867,-0.399233,466.391,1280.66)"><path d="M-0.817,-0.038C3.95,-0.038 7.815,3.824 7.811,8.587C7.815,13.352 3.951,17.215 -0.817,17.212C-5.58,17.213 -9.442,13.351 -9.441,8.583C-9.442,3.825 -5.583,-0.041 -0.817,-0.038" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
+        const SVG_MEMO = `<svg class="icon-svg" viewBox="0 0 51 49" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-1026.44,-2198.73)"><g transform="matrix(1,0,0,1,36,130)"><g transform="matrix(1,0,0,1,0,70)"><g transform="matrix(0.394026,0,0,0.394026,1011.78,2006.56)"><path d="M0,82.402L0,55.942L39.726,16.217L39.726,-19.868L-54.16,-19.868L-54.16,102.27L39.726,102.27L39.726,69.136L26.459,82.402L0,82.402Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.394026,0,0,0.394026,1039.98,2015.77)"><path d="M0,-7.585L-4.97,-12.553C-7.984,-15.569 -12.872,-15.567 -15.885,-12.553L-20.535,-7.902L-4.649,7.984L0,3.335C3.014,0.319 3.014,-4.569 0,-7.585" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.394026,0,0,0.394026,1014.73,2020.62)"><path d="M0,23.348L0,39.234L15.886,39.234L55.12,-0.001L39.234,-15.886L0,23.348Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
+        const SVG_STAY = `<svg class="icon-svg icon-svg-large" viewBox="0 0 49 74" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-923.523,-1578.17)"><g transform="matrix(1,0,0,1,36,130)"><g transform="matrix(1,0,0,1,40,70)"><g transform="matrix(0.722395,0,0,0.574177,852.485,1398.46)"><path d="M0,56.561L0,69.892L53.375,69.892L53.375,56.561C53.375,41.325 32.092,34.866 32.092,29.724L32.092,26.838C32.092,21.696 53.375,15.237 53.375,0.001L53.375,-13.331L0,-13.331L0,0.001C0,15.237 21.283,21.696 21.283,26.838L21.283,29.724C21.283,34.866 0,41.325 0,56.561" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.722395,0,0,0.574177,563.461,1128.4)"><rect x="393.222" y="435" width="67.113" height="12" style="fill:rgb(245,127,51);"/></g><g transform="matrix(0.722395,0,0,0.574177,563.461,1260.47)"><rect x="393.222" y="319" width="67.113" height="14" style="fill:rgb(245,127,51);"/></g></g></g></g></svg>`;
+
+        const APP_VERSION = '5.4.1.3';
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
         let savedLocations = JSON.parse(localStorage.getItem('savedLocations_v2')) || [];
@@ -203,7 +321,18 @@
         let editingIndex = -1; 
         let tempLocationData = null; 
 
-        window.onload = () => { updateDatalist(); checkUrlImport(); if(mode === 'DASHBOARD') renderDashboard(); };
+        function initMap() { console.log("API Ready"); }
+
+        window.onload = () => { 
+            updateDatalist(); 
+            checkUrlImport(); 
+            if(mode === 'DASHBOARD') renderDashboard(); 
+            // モーダルのタイトルにアイコンをセット
+            document.getElementById('icon-trans-title').innerHTML = SVG_CAR_FREE;
+            document.getElementById('icon-stay-title').innerHTML = SVG_STAY;
+            document.getElementById('icon-memo-title').innerHTML = SVG_MEMO;
+            document.getElementById('icon-loc-title').innerHTML = "📍";
+        };
 
         function triggerPrint() { window.print(); return false; }
 
@@ -284,14 +413,22 @@
                         } else {
                             const val = item.name || '地点・施設名の入力';
                             const cls = item.name ? 'input-hole filled' : 'input-hole text-orange-300';
-                            /* 地点名：サイズを15%縮小したクラスを適用 */
-                            nameHtml = `<span onclick="openLocationModal(${i})" class="${cls} text-input-small">${val}</span>`;
+                            const nameStyle = "display:inline-block; max-width:10em; line-height:1.1; word-break:break-all; text-align:left; margin-left:0; margin-right:auto;";
+
+                            nameHtml = `<span onclick="openLocationModal(${i})" class="${cls} text-input-small" style="${nameStyle}">${val}</span>`;
                         }
                     } else {
                         nameHtml = `<span class="font-bold" style="color:#f97316;">${item.name}</span>`;
                     }
 
-                    let controls = (isEdit && i > 2) ? `<div class="ml-auto flex gap-1 no-print">${i > 4 ? `<button onclick="moveStop(${i},-1)" class="text-[10px] bg-orange-50 px-1 rounded text-orange-600">↑</button>` : ''}${!isLast ? `<button onclick="moveStop(${i},1)" class="text-[10px] bg-orange-50 px-1 rounded text-orange-600">↓</button>` : ''}<button onclick="deleteStop(${i})" class="text-orange-400 text-xs ml-1 font-bold">×</button></div>` : '';
+                    // --- 修正箇所：操作ボタン部分 ---
+                    let controls = (isEdit && i > 2) ? 
+                        `<div class="ml-auto flex flex-col gap-1 no-print">` + // flex-colで縦並び
+                        `${i > 4 ? `<button onclick="moveStop(${i},-1)" class="w-6 h-6 flex items-center justify-center text-[10px] bg-orange-50 rounded text-orange-600 border border-orange-100">↑</button>` : ''}` +
+                        `${!isLast ? `<button onclick="moveStop(${i},1)" class="w-6 h-6 flex items-center justify-center text-[10px] bg-orange-50 rounded text-orange-600 border border-orange-100">↓</button>` : ''}` +
+                        `<button onclick="deleteStop(${i})" class="w-6 h-6 flex items-center justify-center text-red-400 text-xs font-bold bg-red-50 rounded border border-red-100">×</button>` +
+                        `</div>` 
+                        : '';
 
                     html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
 
@@ -301,21 +438,19 @@
                             const rVal = item.stayReason || '滞在理由入力';
                             const rCls = item.stayReason ? 'filled filled-orange' : 'text-orange-300';
                             const tVal = item.stayTime || '00';
-                            const mVal = item.memo || '📝 メモ入力';
+                            const mVal = item.memo || 'メモ入力';
                             const mCls = item.memo ? 'filled filled-orange' : 'text-orange-300';
                             
-                            /* 滞在理由：サイズ縮小、入力後は明るいオレンジ */
-                            /* 滞在時間・メモ：入力後は明るいオレンジ */
                             stayHtml = `
                                 <div class="flex items-center gap-2 text-sm text-orange-500 mt-1">
-                                    <span class="text-xl">⏳</span>
+                                    ${SVG_STAY}
                                     <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small">${rVal}</span> 滞在 
                                     <span onclick="openStayModal(${i})" class="input-hole filled text-center filled-orange" style="min-width:30px">${tVal}</span> 分
-                                    <span onclick="openMemoModal(${i})" class="input-hole ${mCls} text-xs ml-2">${mVal}</span>
+                                    <span onclick="openMemoModal(${i})" class="flex items-center gap-1 input-hole ${mCls} text-xs ml-2">${SVG_MEMO} ${mVal}</span>
                                 </div>`;
                         } else {
                             if (item.stayReason || item.stayTime > 0) {
-                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center text-xl">⏳</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} <span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span></div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5">📝 ${item.memo}</div>` : ''}</div></div>`;
+                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center">${SVG_STAY}</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} <span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span></div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5 flex items-center gap-1">${SVG_MEMO} ${item.memo}</div>` : ''}</div></div>`;
                             }
                         }
                         if (stayHtml) html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
@@ -325,10 +460,13 @@
                     }
                 } else if (item.type === 'MOVE') {
                     if (item.mode === 'WAIT') return;
-                    const mKey = item.mode; const modeLabels = { 'DRIVING_FREE':'車', 'DRIVING_TOLL':'車', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
-                    const icon = { 'DRIVING_FREE':'🚗', 'DRIVING_TOLL':'🚗', 'WALKING':'🚶', 'BICYCLING':'🚲' }[mKey] || '🚗';
+                    const mKey = item.mode; 
+                    const modeLabels = { 'DRIVING_FREE':'車', 'DRIVING_TOLL':'車', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
+                    const iconMap = { 'DRIVING_FREE': SVG_CAR_FREE, 'DRIVING_TOLL': SVG_CAR_TOLL, 'WALKING': SVG_WALK, 'BICYCLING': SVG_BIKE };
+                    const icon = iconMap[mKey] || SVG_CAR_FREE;
                     const dur = item.duration ? `${item.duration}分` : '00分';
                     const isToll = (mKey === 'DRIVING_TOLL');
+                    
                     let moveContent = isEdit ? `
                         <div class="flex items-center gap-2 text-sm">
                             <span onclick="openTransportModal(${i})" class="select-box">${icon} ${modeLabels[mKey]} ${isToll?'(有料)':''} ▼</span>
@@ -356,7 +494,7 @@
             if(!isEdit) setTimeout(initFullMap, 800); 
         }
 
-        // --- 以下ロジック関数 (変更なし) ---
+        // --- ロジック関数 ---
         function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
         function copySampleToEdit() {
             const sample = getSampleData();
