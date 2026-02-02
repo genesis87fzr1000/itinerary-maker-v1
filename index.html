@@ -80,7 +80,19 @@
             .timeline-item, .card { break-inside: avoid; page-break-inside: avoid; }
             #full-map-area { height: 300px !important; width: 100% !important; border: 1px solid #FFB74D !important; break-inside: avoid; }
         }
-    </style>
+    
+/* === DESIGN FIX (no logic changes) === */
+.timeline-line{display:none !important;}
+.timeline, .timeline-container{padding-left:0 !important;}
+
+/* Input guide */
+.input-guide{color:#fdba74;border-bottom:2px dashed #fdba74;}
+
+/* Place name wrapping */
+.place-name{word-break:break-all;max-width:15em;}
+@media (max-width:768px){.place-name{max-width:8em;}}
+
+</style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOStiNglNEGEnPnhDxJG0RSQqgJXVtUQw&libraries=places,geometry&callback=initMap" async defer></script>
 </head>
 <body class="flex flex-col items-center min-h-screen">
@@ -129,7 +141,7 @@
     <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
-                <span id="icon-loc-title"></span> 地点・施設名の入力
+                <span id="icon-loc-title"></span> <span class="place-name input-guide">地点・施設名の入力</span>
             </h3>
             <div class="flex gap-2 mb-2">
                 <input type="text" id="input-loc-name" list="saved-locations-list" class="flex-1 p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 東京駅">
@@ -256,8 +268,8 @@
                 <span id="icon-stay-title"></span> 滞在・基点設定
             </h3>
             <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400">滞在理由</label>
-                <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 昼食">
+                <label class="block text-xs font-bold text-orange-400"><span class="input-guide">滞在理由</span></label>
+                <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: <span class="input-guide">昼食</span>">
             </div>
             <div class="mb-3">
                 <label class="block text-xs font-bold text-orange-400">滞在時間</label>
@@ -352,7 +364,7 @@
                     { type:'MOVE', mode:'DRIVING_FREE', duration:27, dist:0, trafficBuffer:0 },
                     { type:'STOP', name:'高滝ダム記念館', location:'高滝ダム記念館', confirmed:true, stayTime:20, stayReason:'撮影', memo:'カード取得', isBase:false, timeStr:'10:50', depTimeStr:'11:10' },
                     { type:'MOVE', mode:'DRIVING_FREE', duration:50, dist:0, trafficBuffer:0 },
-                    { type:'STOP', name:'割烹料理「天平」', location:'割烹料理天平', confirmed:true, stayTime:60, stayReason:'昼食', memo:'なめろうがお薦め', isBase:true, timeStr:'12:00', depTimeStr:'13:00' },
+                    { type:'STOP', name:'割烹料理「天平」', location:'割烹料理天平', confirmed:true, stayTime:60, stayReason:'<span class="input-guide">昼食</span>', memo:'<span class="input-guide">なめろうがお薦め</span>', isBase:true, timeStr:'12:00', depTimeStr:'13:00' },
                     { type:'MOVE', mode:'DRIVING_FREE', duration:51, dist:0, trafficBuffer:0 },
                     { type:'STOP', name:'片倉ダム', location:'片倉ダム', confirmed:true, stayTime:10, stayReason:'撮影', memo:'', isBase:false, timeStr:'14:00', depTimeStr:'14:10' },
                     { type:'MOVE', mode:'DRIVING_FREE', duration:10, dist:0, trafficBuffer:0 },
@@ -411,7 +423,7 @@
                         if (isFirst) {
                             nameHtml = `<span class="input-readonly text-orange-400 text-sm text-input-small">${item.name || '（出発地と同じ）'}</span>`;
                         } else {
-                            const val = item.name || '地点・施設名の入力';
+                            const val = item.name || '<span class="place-name input-guide">地点・施設名の入力</span>';
                             const cls = item.name ? 'input-hole filled' : 'input-hole text-orange-300';
                             const nameStyle = "display:inline-block; max-width:10em; line-height:1.1; word-break:break-all; text-align:left; margin-left:0; margin-right:auto;";
 
@@ -435,7 +447,7 @@
                     if (!isFirst && !isStart && !isLast) {
                         let stayHtml = '';
                         if (isEdit) {
-                            const rVal = item.stayReason || '滞在理由入力';
+                            const rVal = item.stayReason || '<span class="input-guide">滞在理由</span>入力';
                             const rCls = item.stayReason ? 'filled filled-orange' : 'text-orange-300';
                             const tVal = item.stayTime || '00';
                             const mVal = item.memo || 'メモ入力';
