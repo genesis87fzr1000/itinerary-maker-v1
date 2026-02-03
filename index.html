@@ -2,577 +2,736 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1.7</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅程プランナー (v17.0)</title>
+    
     <meta name="robots" content="noindex, nofollow">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
         
-        /* --- 全体設定 --- */
-        .font-bold { font-weight: 400 !important; }
-        .text-sm { font-size: 1.2rem !important; line-height: 2rem !important; }
-
-        .text-input-small { font-size: 1.02rem !important; }
-
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #FFF8F0; 
-            color: #4E2600; 
-            padding-top: 70px; 
-            padding-bottom: 120px; 
-        }
-        
-        .ad-banner {
-            position: fixed; left: 0; right: 0; z-index: 50;
-            background-color: #FFE0B2; color: #E65100;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: bold; border: 1px dashed #FFCC80;
-        }
-        .ad-top { top: 0; height: 60px; border-bottom-width: 1px; }
-        .ad-bottom { bottom: 0; height: 60px; border-top-width: 1px; }
-
-        .timeline-container { position: relative; padding-left: 20px; }
+        /* タイムライン */
+        .timeline-container { position: relative; padding-left: 2rem; }
         .timeline-line { 
-            position: absolute; left: 11px; top: 24px; bottom: -10px; 
-            width: 2px; background-color: #FFD180; z-index: 0; 
+            position: absolute; left: 15px; top: 10px; bottom: -20px; 
+            width: 2px; background-color: #e5e7eb; z-index: 0; 
         }
         .timeline-item:last-child .timeline-line { display: none; }
-        
         .timeline-dot { 
-            width: 24px; height: 24px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 10px; z-index: 10; background-color: #fff; border: 2px solid #FFB74D;
-            flex-shrink: 0; margin-right: 12px; position: relative;
+            position: absolute; left: 0; top: 0; 
+            width: 32px; height: 32px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px; z-index: 10;
         }
         
-        .input-hole {
-            display: inline-block; border-bottom: 2px dashed #F57C00; color: #f97316;
-            padding: 0 4px; cursor: pointer; transition: all 0.2s; font-weight: bold;
-            min-width: 60px; text-align: center;
-        }
-        .input-hole.filled { border-bottom: none; color: #4E2600; pointer-events: auto; text-align: left; min-width: auto; } 
-        .filled-orange { color: #f97316 !important; }
-
-        .input-readonly { color: #4E2600; border-bottom: none; pointer-events: none; }
-        .select-box {
-            display: inline-flex; align-items: center; justify-content: center;
-            border: 1px solid #FFB74D; background-color: #fff;
-            padding: 2px 8px; border-radius: 4px; cursor: pointer;
-            font-size: 0.75rem; color: #F57C00;
-        }
-        .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #F57C00; }
-        .modal-bg { background-color: rgba(78, 38, 0, 0.5); }
-
-        
-        
-        /* SVGアイコン用の共通クラス */
-        .icon-svg { display: inline-block; vertical-align: middle; height: 1.2em; width: auto; }
-        .icon-svg-large { height: 1.5em; }
-
+        /* 印刷用 */
         @media print {
-            .no-print, .ad-banner, header { display: none !important; }
-            body { background-color: #fff !important; padding: 0 !important; margin: 0 !important; width: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            #app-content { padding: 0 !important; max-width: none !important; }
-            .shadow-xl, .shadow-lg, .shadow-sm { box-shadow: none !important; border: none !important; }
-            .bg-gradient-to-r { background: #F57C00 !important; color: white !important; }
-            .timeline-item, .card { break-inside: avoid; page-break-inside: avoid; }
-            #full-map-area { height: 300px !important; width: 100% !important; border: 1px solid #FFB74D !important; break-inside: avoid; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; padding: 0; }
+            .shadow-xl, .shadow-md, .border { box-shadow: none !important; border: none !important; }
+            .ad-space { display: none !important; } 
+            body { padding-top: 0 !important; padding-bottom: 0 !important; }
         }
+        .print-only { display: none; }
+        
+        .bg-gradient-brand { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        .card-hover { transition: all 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        /* 広告スペース (固定) */
+        .ad-space { background-color: #f3f4f6; color: #9ca3af; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; border: 2px dashed #e5e7eb; z-index: 999; }
+        .ad-top-fixed { position: fixed; top: 0; left: 0; right: 0; height: 5rem; max-width: 100%; } 
+        .ad-bottom-fixed { position: fixed; bottom: 0; left: 0; right: 0; height: 4rem; max-width: 100%; }
+        
+        body { padding-top: 5rem; padding-bottom: 4rem; } 
+        .main-container { max-width: 5xl; margin-left: auto; margin-right: auto; }
+    </style>
     
-/* === DESIGN FIX (no logic changes) === */
-.timeline-line{display:none !important;}
-.timeline, .timeline-container{padding-left:0 !important;}
-
-/* Input guide */
-.input-guide{color:#fdba74;border-bottom:2px dashed #fdba74;}
-
-/* Place name wrapping */
-.place-name{word-break:break-all;max-width:15em;}
-@media (max-width:768px){.place-name{max-width:8em;}}
-
-</style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOStiNglNEGEnPnhDxJG0RSQqgJXVtUQw&libraries=places,geometry&callback=initMap" async defer></script>
 </head>
-<body class="flex flex-col items-center min-h-screen">
+<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col items-center">
 
-    <div class="ad-banner ad-top no-print">
-        <span>広告枠 (Top) 320x50 / 320x100</span>
+    <div class="ad-space ad-top-fixed no-print">広告スペース (Top Fixed)</div>
+
+    <div class="main-container w-full bg-white rounded-3xl shadow-xl overflow-hidden print:overflow-visible min-h-[800px] flex flex-col">
+        <div class="print-only text-center py-4 border-b">
+            <h1 class="text-3xl font-extrabold text-gray-800">旅のしおり</h1>
+        </div>
+
+        <header class="p-4 sm:p-6 bg-indigo-700 text-white shadow-md flex justify-between items-center no-print flex-shrink-0">
+            <h1 onclick="navigate('dashboard')" class="text-xl sm:text-2xl font-extrabold flex items-center gap-2 cursor-pointer hover:opacity-80">
+                <span>🗺️</span> 旅程プランナー <span class="text-xs bg-indigo-500 px-2 py-1 rounded-full">v17.0</span>
+            </h1>
+            <div class="flex gap-2 sm:gap-4 text-xs sm:text-sm items-center">
+                <a id="feedback-link" href="#" target="_blank" class="bg-white text-indigo-700 px-3 py-1 rounded-full font-bold hover:bg-gray-100 transition flex items-center gap-1">
+                    💬 <span class="hidden sm:inline">ご意見・ご感想</span>
+                </a>
+                <div class="h-6 w-px bg-indigo-400 mx-1"></div>
+                <button onclick="navigate('dashboard')" class="text-indigo-100 hover:text-white font-bold flex items-center gap-1">
+                    🏠 マイページ
+                </button>
+            </div>
+        </header>
+
+        <nav id="editor-nav" class="hidden flex border-b border-gray-200 bg-gray-50 text-sm font-bold no-print flex-shrink-0">
+            <button onclick="navigate('input')" id="nav-input" class="flex-1 py-4 text-gray-500 hover:text-indigo-600 border-b-4 border-transparent">1. 地点・基点</button>
+            <button onclick="validateAndNavigate('selection')" id="nav-selection" class="flex-1 py-4 text-gray-500 hover:text-indigo-600 border-b-4 border-transparent">2. ルート選択</button>
+            <button onclick="validateAndNavigate('shiori')" id="nav-shiori" class="flex-1 py-4 text-gray-500 hover:text-indigo-600 border-b-4 border-transparent">3. 旅のしおり</button>
+        </nav>
+
+        <main id="app-content" class="p-4 sm:p-8 animate-fade-in flex-grow">
+            <div class="text-center p-20 text-gray-400">Loading...</div>
+        </main>
+
+        <div id="message-container" class="fixed bottom-20 right-4 z-[1000] no-print"></div>
     </div>
 
-    <header class="w-full bg-orange-600 text-white shadow-md z-40 no-print" style="position: sticky; top: 60px;">
-        <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-1 cursor-pointer overflow-hidden" onclick="goHome()">
-                <svg class="w-[60px] h-[38px] sm:w-[80px] sm:h-[50px]" viewBox="0 0 196 131" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-                    <path d="M98,99L98,131L0,131L0,0L98,0L98,23L195.846,23L195.846,99L98,99Z" style="fill:rgb(244,244,244);"/>
-                </svg>
-                <svg class="w-[180px] h-[45px] sm:w-[260px] sm:h-[60px]" viewBox="0 0 621 111" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-                    <g transform="matrix(1,0,0,1,-855.794,-452.32)">
-                        <g transform="matrix(1,0,0,1,36,0)">
-                            <g transform="matrix(1,0,0,1,132,180.858)">
-                                <text x="686px" y="376.125px" style="font-family:'Inter', sans-serif;font-weight:800;font-size:70.833px;fill:white;">旅のしおりメーカー</text>
-                            </g>
-                        </g>
-                        <g transform="matrix(1,0,0,1,36,0)">
-                            <g transform="matrix(1,0,0,1,132,130.858)">
-                                <text x="686px" y="352.846px" style="font-family:'Inter', sans-serif;font-size:37.5px;fill:white;">複数個所巡りプラン簡単作成</text>
-                            </g>
-                        </g>
-                    </g>
-                </svg>
-                <span class="hidden sm:inline-block text-[10px] bg-orange-500 px-1.5 py-0.5 rounded self-end mb-1">v5.4.1</span>
-            </div>
-            
-            <button onclick="goHome()" class="flex flex-col items-center justify-center text-white hover:opacity-80 transition-opacity flex-shrink-0 ml-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span class="hidden sm:block" style="font-size: 10px; font-weight: bold; margin-top: 2px;">マイページ</span>
-            </button>
-        </div>
-    </header>
-
-    <main id="app-content" class="w-full max-w-2xl p-2 sm:p-4"></main>
-
-    <div class="ad-banner ad-bottom no-print"><span>広告枠 (Bottom) 300x250 / 320x50</span></div>
-
-    <div id="modal-location" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
-                <span id="icon-loc-title"></span> <span class="place-name input-guide">地点・施設名の入力</span>
-            </h3>
-            <div class="flex gap-2 mb-2">
-                <input type="text" id="input-loc-name" list="saved-locations-list" class="flex-1 p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 東京駅">
-                <button onclick="validateLocation()" class="bg-orange-100 text-orange-700 px-3 rounded font-bold whitespace-nowrap">確定</button>
-            </div>
-            <p id="loc-search-res" class="text-xs text-orange-500 mb-4 h-4 truncate">※確定を押して住所を確認してください</p>
-            <div class="flex justify-between items-center pt-2 border-t border-orange-100 mt-2">
-                <button onclick="saveToDictionary()" class="text-xs text-orange-400 hover:text-orange-600">💾 辞書に保存</button>
-                <div class="flex gap-2">
-                    <button onclick="closeModal('modal-location')" class="px-4 py-2 text-orange-400">キャンセル</button>
-                    <button onclick="confirmLocation()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-transport" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
-                <span id="icon-trans-title"></span> 移動手段・渋滞設定
-            </h3>
-            
-            <label class="block text-xs font-bold text-orange-400 mb-1">移動モード</label>
-            
-            <div class="relative mb-4">
-                <input type="hidden" id="input-transport" value="DRIVING_TOLL">
-                
-                <div id="custom-select-trigger" onclick="toggleCustomSelect()" class="w-full p-3 border border-orange-200 rounded text-lg font-bold flex items-center justify-between cursor-pointer bg-white" style="color:#f97316;">
-                    <div id="selected-display" class="flex items-center gap-2">
-                        <span class="w-8 h-5 flex items-center">
-                            <svg viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-915.342,-1239.65)"><g transform="matrix(1,0,0,1,36,200)"><g transform="matrix(-1.21776,0,0,1.21776,1751.24,-547.655)"><g transform="matrix(0.708705,0,0,0.708705,704.014,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.708705,0,0,0.708705,674.749,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.481471,0,0,0.704256,718.598,1308.96)"><path d="M-75.115,5.006L-73.071,-4.836C-73.071,-4.836 -61.052,-5.324 -53.399,-1.253C-53.399,-1.253 -41.734,4.24 -42.073,4.431C-44.173,5.616 -48.851,6.27 -54.04,6.096C-65.366,5.715 -75.115,5.006 -75.115,5.006ZM-80.734,4.286L-96.526,3.836L-98.24,0.937C-91.405,-4.037 -77.49,-4.859 -77.49,-4.859L-80.734,4.286ZM-20.362,6.234C-30.639,4.532 -37.593,2.928 -37.593,2.928L-51.742,-3.967C-59.711,-7.239 -66.893,-7.396 -74.431,-7.755C-91.966,-8.59 -107.687,0.276 -107.687,0.276C-107.687,0.276 -119.883,4.265 -119.883,5.978L-115.478,18.264C-114.518,20.511 -113.131,21.18 -111.841,21.9L-106.209,25.095C-106.32,24.447 -106.38,23.779 -106.38,23.099C-106.38,16.494 -100.731,12.277 -91.07,12.277C-82.387,12.277 -75.219,16.383 -75.219,22.988C-75.219,23.668 -75.282,25.776 -75.391,26.424L-45.208,25.958C-45.317,25.31 -45.378,23.17 -45.378,22.49C-45.378,15.885 -36.891,12.277 -30.288,12.277C-23.68,12.277 -14.609,15.885 -14.609,22.49C-14.609,23.17 -14.43,25.038 -14.537,25.686L-10.027,25.668C-4.901,25.188 -5.447,19.673 -5.447,17.665C-5.447,17.665 -6.155,14.843 -7.607,12.976C-10.852,8.804 -14.923,7.135 -20.362,6.234Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
-                        </span>
-                        <span>車（有料優先）</span>
-                    </div>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-                
-                <div id="custom-options" class="hidden absolute left-0 right-0 mt-1 bg-white border border-orange-200 rounded shadow-xl z-50 overflow-hidden">
-                    <div onclick="selectOption('DRIVING_TOLL', '車（有料優先）', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
-                        <span class="w-8 h-5 flex items-center">
-                            <svg width="100%" height="100%" viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-915.342,-1239.65)"><g transform="matrix(1,0,0,1,36,200)"><g transform="matrix(-1.21776,0,0,1.21776,1751.24,-547.655)"><g transform="matrix(0.708705,0,0,0.708705,704.014,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.708705,0,0,0.708705,674.749,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.481471,0,0,0.704256,718.598,1308.96)"><path d="M-75.115,5.006L-73.071,-4.836C-73.071,-4.836 -61.052,-5.324 -53.399,-1.253C-53.399,-1.253 -41.734,4.24 -42.073,4.431C-44.173,5.616 -48.851,6.27 -54.04,6.096C-65.366,5.715 -75.115,5.006 -75.115,5.006ZM-80.734,4.286L-96.526,3.836L-98.24,0.937C-91.405,-4.037 -77.49,-4.859 -77.49,-4.859L-80.734,4.286ZM-20.362,6.234C-30.639,4.532 -37.593,2.928 -37.593,2.928L-51.742,-3.967C-59.711,-7.239 -66.893,-7.396 -74.431,-7.755C-91.966,-8.59 -107.687,0.276 -107.687,0.276C-107.687,0.276 -119.883,4.265 -119.883,5.978L-115.478,18.264C-114.518,20.511 -113.131,21.18 -111.841,21.9L-106.209,25.095C-106.32,24.447 -106.38,23.779 -106.38,23.099C-106.38,16.494 -100.731,12.277 -91.07,12.277C-82.387,12.277 -75.219,16.383 -75.219,22.988C-75.219,23.668 -75.282,25.776 -75.391,26.424L-45.208,25.958C-45.317,25.31 -45.378,23.17 -45.378,22.49C-45.378,15.885 -36.891,12.277 -30.288,12.277C-23.68,12.277 -14.609,15.885 -14.609,22.49C-14.609,23.17 -14.43,25.038 -14.537,25.686L-10.027,25.668C-4.901,25.188 -5.447,19.673 -5.447,17.665C-5.447,17.665 -6.155,14.843 -7.607,12.976C-10.852,8.804 -14.923,7.135 -20.362,6.234Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
-                        </span>
-                        <span>車（有料優先）</span>
-                    </div>
-                    <div onclick="selectOption('DRIVING_FREE', '車（無料優先）', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
-                        <span class="w-8 h-5 flex items-center">
-                            <svg width="100%" height="100%" viewBox="0 0 67 44" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-916.331,-1802.04)"><g transform="matrix(1,0,0,1,36,280)"><g transform="matrix(-0.780381,0,0,0.788641,1451.49,514.33)"><g transform="matrix(0.752593,0,0,0.752593,666.472,1317.06)"><path d="M0,13.242C-3.656,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.656,0.002 0,0.002C3.654,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.654,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.924,20.99 14.367,14.545 14.367,6.623C14.367,-1.303 7.924,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,709.877,1317.06)"><path d="M0,13.242C-3.654,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.654,0.002 0,0.002C3.656,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.656,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.926,20.99 14.369,14.545 14.369,6.623C14.369,-1.303 7.926,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,666.472,1323.76)"><path d="M0,-4.539C1.254,-4.539 2.27,-3.523 2.27,-2.268C2.27,-1.016 1.254,0 0,0C-1.254,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.254,-4.539 0,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,709.878,1323.76)"><path d="M0.001,-4.539C1.255,-4.539 2.271,-3.523 2.271,-2.268C2.271,-1.016 1.255,0 0.001,0C-1.253,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.253,-4.539 0.001,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,706.498,1305.58)"><path d="M0,-16.964C-0.084,-16.72 -0.313,-16.554 -0.572,-16.554L-30.439,-16.554L-30.439,-31.847L-24.52,-31.847C-20.924,-31.847 -17.365,-30.652 -14.5,-28.48L-0.209,-17.636C-0.002,-17.48 0.08,-17.208 0,-16.964M-14.846,-5.358L-21.592,-5.358C-22.076,-5.358 -22.467,-5.751 -22.467,-6.233C-22.467,-6.715 -22.076,-7.108 -21.592,-7.108L-14.846,-7.108C-14.361,-7.108 -13.971,-6.715 -13.971,-6.233C-13.971,-5.751 -14.361,-5.358 -14.846,-5.358M-72.523,-16.554C-73.189,-16.554 -73.727,-17.093 -73.727,-17.757L-73.727,-27.312C-73.727,-29.812 -71.691,-31.847 -69.191,-31.847L-34.404,-31.847L-34.404,-16.554L-72.523,-16.554ZM27.898,-14.288L7.41,-18.253L-11.418,-32.538C-15.188,-35.398 -19.787,-36.946 -24.52,-36.946L-69.191,-36.946C-74.512,-36.946 -78.826,-32.632 -78.826,-27.312L-78.826,15.163C-78.826,17.824 -76.668,19.982 -74.008,19.982L-70.219,19.982C-69.27,11.419 -61.994,4.738 -53.184,4.738C-44.373,4.738 -37.098,11.419 -36.148,19.982L-12.545,19.982C-11.596,11.419 -4.318,4.738 4.49,4.738C13.301,4.738 20.578,11.419 21.525,19.982L28.934,19.982C31.594,19.982 33.75,17.824 33.75,15.163L33.75,-7.194C33.75,-10.655 31.295,-13.632 27.898,-14.288" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
-                        </span>
-                        <span>車（無料優先）</span>
-                    </div>
-                    <div onclick="selectOption('WALKING', '徒歩', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
-                        <span class="w-8 h-5 flex items-center">
-                            <svg width="100%" height="100%" viewBox="0 0 24 35" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-562.258,-1245.25)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.690342,0,0,0.690342,42.1505,383.895)"><g transform="matrix(0.390332,0,0,0.390332,716.64,1189.77)"><path d="M0,24.759C6.839,24.759 12.381,19.217 12.381,12.381C12.381,5.542 6.839,0 0,0C-6.838,0 -12.381,5.542 -12.381,12.381C-12.381,19.217 -6.838,24.759 0,24.759" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.390332,0,0,0.390332,735.011,1228.05)"><path d="M0,-37.782L-8.21,-50.126C-10.203,-53.043 -12.848,-55.458 -15.93,-57.185L-32.029,-66.201C-34.979,-67.58 -37.21,-68.457 -40.013,-68.079L-47.716,-67.032C-50.589,-66.642 -53.208,-65.179 -55.044,-62.938L-69.707,-47.333L-83.136,-42.384C-85.68,-41.447 -87.046,-38.683 -86.242,-36.093L-86.179,-35.895C-85.389,-33.349 -82.766,-31.845 -80.169,-32.443L-69.224,-34.97C-66.495,-35.599 -63.902,-36.723 -61.582,-38.288L-53.971,-43.407L-51.282,-22.972C-51.086,-21.472 -51.388,-19.951 -52.142,-18.638L-74.932,20.944C-76.557,23.764 -75.595,27.368 -72.783,29.01L-72.587,29.124C-69.925,30.675 -66.519,29.926 -64.755,27.402L-39.281,-9.036L-31.564,6.371C-30.992,7.509 -30.236,8.544 -29.325,9.433L-12.204,26.174C-10.043,28.284 -6.625,28.378 -4.356,26.389L-4.082,26.152C-2.919,25.132 -2.212,23.691 -2.12,22.148C-2.028,20.605 -2.556,19.088 -3.59,17.94L-18.047,1.836L-25.9,-26.588L-25.929,-26.564L-28.182,-48.801L-20.222,-45.219L-7.492,-31.82C-5.891,-30.135 -3.299,-29.863 -1.386,-31.183L-1.255,-31.273C0.87,-32.736 1.429,-35.633 0,-37.782" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
-                        </span>
-                        <span>徒歩</span>
-                    </div>
-                    <div onclick="selectOption('BICYCLING', '自転車', this)" class="p-3 flex items-center gap-2 cursor-pointer hover:bg-orange-50 transition-colors">
-                        <span class="w-8 h-5 flex items-center">
-                            <svg width="100%" height="100%" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g transform="matrix(1,0,0,1,-553.349,-1303.65)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.805192,0,0,0.805192,164.22,237.993)"><g transform="matrix(0.401036,0,0,0.401036,448.306,1292.75)"><path d="M0,61.994C-9.723,61.994 -17.631,54.084 -17.631,44.361C-17.631,34.636 -9.723,26.725 0,26.725C0.656,26.725 1.299,26.768 1.936,26.838L-1.736,43.514L2.509,44.448L6.161,27.859C12.851,30.365 17.635,36.805 17.635,44.361C17.635,54.084 9.723,61.994 0,61.994M7.605,21.307L13.556,-5.72L9.311,-6.654L3.368,20.333C2.265,20.178 1.146,20.071 0,20.071C-13.395,20.071 -24.289,30.966 -24.289,44.361C-24.289,57.753 -13.395,68.648 0,68.648C13.393,68.648 24.289,57.753 24.289,44.361C24.289,33.623 17.281,24.507 7.605,21.307" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,480.158,1303.46)"><path d="M0,35.269C-9.241,35.269 -16.831,28.121 -17.563,19.066L-0.433,19.066L-0.433,14.719L-17.374,14.719C-15.978,6.38 -8.73,-0 0,-0C9.723,-0 17.633,7.911 17.633,17.636C17.633,27.359 9.723,35.269 0,35.269M0,-6.654C-12.406,-6.654 -22.649,2.698 -24.096,14.719L-28.687,14.719L-28.687,19.066L-24.217,19.066C-23.47,31.792 -12.911,41.923 0,41.923C13.393,41.923 24.287,31.028 24.287,17.636C24.287,4.241 13.393,-6.654 0,-6.654" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,464.193,1293.79)"><path d="M0,25.569L-5.274,17.75C-5.968,16.882 -5.525,16.082 -4.652,15.394C-3.782,14.702 2.498,11.779 2.498,11.779L0,25.569ZM20.804,-4.998L17.283,-23.088C16.74,-27.163 11.124,-31.964 5.33,-29.065L-22.105,-14.993C-23.871,-14.32 -24.754,-12.344 -24.077,-10.581C-23.404,-8.813 -21.428,-7.928 -19.666,-8.6L-0.106,-14.394L2.651,-3.81C2.651,-3.81 -13.301,6.452 -13.959,6.938C-17.245,9.375 -19.637,14.8 -16.442,18.837L-2.507,35.922L-5.497,51.189C-6.153,53.674 -4.671,56.221 -2.188,56.877C0.295,57.533 2.842,56.051 3.5,53.566L18.005,14.04C20.125,9.23 22.706,2.422 20.804,-4.998" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.399233,-0.0379867,-0.0379867,-0.399233,466.391,1280.66)"><path d="M-0.817,-0.038C3.95,-0.038 7.815,3.824 7.811,8.587C7.815,13.352 3.951,17.215 -0.817,17.212C-5.58,17.213 -9.442,13.351 -9.441,8.583C-9.442,3.825 -5.583,-0.041 -0.817,-0.038" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>
-                        </span>
-                        <span>自転車</span>
-                    </div>
-                </div>
-            </div>
-            <label class="block text-xs font-bold text-orange-400 mb-1">渋滞考慮 (余裕をもたせる)</label>
-            <div class="bg-orange-50 p-3 rounded border border-orange-100 mb-6">
-                <select id="input-traffic-buffer" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
-                    <option value="0">なし (API計算通り)</option>
-                    <option value="10">＋10分 の余裕を足す</option>
-                    <option value="20">＋20分 の余裕を足す</option>
-                    <option value="30">＋30分 の余裕を足す</option>
-                </select>
-            </div>
-            <div class="flex justify-end gap-2">
-                <button onclick="closeModal('modal-transport')" class="px-4 py-2 text-orange-400">キャンセル</button>
-                <button onclick="confirmTransport()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        /**
-         * カスタムセレクトボックスの開閉切り替え
-         */
-        function toggleCustomSelect() {
-            const options = document.getElementById('custom-options');
-            options.classList.toggle('hidden');
-        }
-
-        /**
-         * オプション選択時の処理
-         * @param {string} value - 送信用の値 (DRIVING_TOLL等)
-         * @param {string} label - 表示用のテキスト
-         * @param {HTMLElement} element - クリックされた要素
-         */
-        function selectOption(value, label, element) {
-            // 隠し入力値を更新 (既存のJSがここを参照する)
-            document.getElementById('input-transport').value = value;
-            
-            // 表示を更新
-            const iconHtml = element.querySelector('span').innerHTML;
-            document.getElementById('selected-display').innerHTML = `
-                <span class="w-8 h-5 flex items-center">${iconHtml}</span>
-                <span>${label}</span>
-            `;
-            
-            // リストを閉じる
-            document.getElementById('custom-options').classList.add('hidden');
-        }
-
-        // モーダル外をクリックした時にリストを閉じる処理
-        window.addEventListener('click', function(e) {
-            const trigger = document.getElementById('custom-select-trigger');
-            const options = document.getElementById('custom-options');
-            if (trigger && !trigger.contains(e.target) && !options.contains(e.target)) {
-                options.classList.add('hidden');
-            }
-        });
-    </script>
-
-    <div id="modal-stay" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
-                <span id="icon-stay-title"></span> 滞在・基点設定
-            </h3>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400"><span class="input-guide">滞在理由</span></label>
-                <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: <span class="input-guide">昼食</span>">
-            </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400">滞在時間</label>
-                <select id="input-stay-time" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
-                    <option value="0">0分 (通過)</option>
-                    <option value="10">10分</option><option value="20">20分</option><option value="30">30分</option>
-                    <option value="40">40分</option><option value="60">60分</option><option value="90">90分</option><option value="120">2時間</option>
-                </select>
-            </div>
-            <div class="mb-4 bg-orange-50 p-3 rounded border border-orange-200">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="input-is-base" class="w-5 h-5 text-orange-600 accent-orange-600">
-                    <span class="font-bold text-sm text-orange-800">★ ここを時間の基点にする</span>
-                </label>
-            </div>
-            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-stay')" class="px-4 py-2 text-orange-400">キャンセル</button><button onclick="confirmStay()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button></div>
-        </div>
-    </div>
-
-    <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
-                <span id="icon-memo-title"></span> メモ入力
-            </h3>
-            <textarea id="input-memo" rows="3" class="w-full p-3 border border-orange-200 rounded mb-4" style="color:#f97316;" placeholder="メモを入力..."></textarea>
-            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-memo')" class="px-4 py-2 text-orange-400">キャンセル</button><button onclick="confirmMemo()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">OK</button></div>
-        </div>
-    </div>
-
-    <div id="modal-finalize" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold mb-4 text-orange-700">🚀 仕上げ設定</h3>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400 mb-1">プラン名</label>
-                <input type="text" id="final-plan-name" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" value="マイ旅程プラン">
-            </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400 mb-1">基点日時</label>
-                <input type="datetime-local" id="final-base-time" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
-            </div>
-            <div class="flex justify-end gap-2"><button onclick="closeModal('modal-finalize')" class="px-4 py-2 text-orange-400">戻る</button><button onclick="executeCalculation()" class="px-6 py-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-bold rounded shadow">作成する！</button></div>
-        </div>
-    </div>
+    <div class="ad-space ad-bottom-fixed no-print">広告スペース (Bottom Fixed)</div>
 
     <datalist id="saved-locations-list"></datalist>
 
     <script>
-        // --- SVGアイコンの定義 ---
-        const SVG_CAR_TOLL = `<svg class="icon-svg" viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-915.342,-1239.65)"><g transform="matrix(1,0,0,1,36,200)"><g transform="matrix(-1.21776,0,0,1.21776,1751.24,-547.655)"><g transform="matrix(0.708705,0,0,0.708705,704.014,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.708705,0,0,0.708705,674.749,1321.81)"><path d="M0,9.068C-2.5,9.068 -4.531,7.035 -4.531,4.533C-4.531,2.033 -2.5,-0.002 0,-0.002C2.502,-0.002 4.535,2.033 4.535,4.533C4.535,7.035 2.502,9.068 0,9.068M0,-4.707C-5.104,-4.707 -9.24,-0.571 -9.24,4.533C-9.24,9.636 -5.104,13.775 0,13.775C5.105,13.775 9.242,9.636 9.242,4.533C9.242,-0.571 5.105,-4.707 0,-4.707" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.481471,0,0,0.704256,718.598,1308.96)"><path d="M-75.115,5.006L-73.071,-4.836C-73.071,-4.836 -61.052,-5.324 -53.399,-1.253C-53.399,-1.253 -41.734,4.24 -42.073,4.431C-44.173,5.616 -48.851,6.27 -54.04,6.096C-65.366,5.715 -75.115,5.006 -75.115,5.006ZM-80.734,4.286L-96.526,3.836L-98.24,0.937C-91.405,-4.037 -77.49,-4.859 -77.49,-4.859L-80.734,4.286ZM-20.362,6.234C-30.639,4.532 -37.593,2.928 -37.593,2.928L-51.742,-3.967C-59.711,-7.239 -66.893,-7.396 -74.431,-7.755C-91.966,-8.59 -107.687,0.276 -107.687,0.276C-107.687,0.276 -119.883,4.265 -119.883,5.978L-115.478,18.264C-114.518,20.511 -113.131,21.18 -111.841,21.9L-106.209,25.095C-106.32,24.447 -106.38,23.779 -106.38,23.099C-106.38,16.494 -100.731,12.277 -91.07,12.277C-82.387,12.277 -75.219,16.383 -75.219,22.988C-75.219,23.668 -75.282,25.776 -75.391,26.424L-45.208,25.958C-45.317,25.31 -45.378,23.17 -45.378,22.49C-45.378,15.885 -36.891,12.277 -30.288,12.277C-23.68,12.277 -14.609,15.885 -14.609,22.49C-14.609,23.17 -14.43,25.038 -14.537,25.686L-10.027,25.668C-4.901,25.188 -5.447,19.673 -5.447,17.665C-5.447,17.665 -6.155,14.843 -7.607,12.976C-10.852,8.804 -14.923,7.135 -20.362,6.234Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
-        const SVG_CAR_FREE = `<svg class="icon-svg" viewBox="0 0 67 44" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-916.331,-1802.04)"><g transform="matrix(1,0,0,1,36,280)"><g transform="matrix(-0.780381,0,0,0.788641,1451.49,514.33)"><g transform="matrix(0.752593,0,0,0.752593,666.472,1317.06)"><path d="M0,13.242C-3.656,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.656,0.002 0,0.002C3.654,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.654,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.924,20.99 14.367,14.545 14.367,6.623C14.367,-1.303 7.924,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,709.877,1317.06)"><path d="M0,13.242C-3.654,13.242 -6.621,10.277 -6.621,6.623C-6.621,2.963 -3.654,0.002 0,0.002C3.656,0.002 6.621,2.963 6.621,6.623C6.621,10.277 3.656,13.242 0,13.242M0,-7.748C-7.924,-7.748 -14.369,-1.303 -14.369,6.623C-14.369,14.545 -7.924,20.99 0,20.99C7.926,20.99 14.369,14.545 14.369,6.623C14.369,-1.303 7.926,-7.748 0,-7.748" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,666.472,1323.76)"><path d="M0,-4.539C1.254,-4.539 2.27,-3.523 2.27,-2.268C2.27,-1.016 1.254,0 0,0C-1.254,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.254,-4.539 0,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(-0.752593,0,0,0.752593,709.878,1323.76)"><path d="M0.001,-4.539C1.255,-4.539 2.271,-3.523 2.271,-2.268C2.271,-1.016 1.255,0 0.001,0C-1.253,0 -2.27,-1.016 -2.27,-2.268C-2.27,-3.523 -1.253,-4.539 0.001,-4.539" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.752593,0,0,0.752593,706.498,1305.58)"><path d="M0,-16.964C-0.084,-16.72 -0.313,-16.554 -0.572,-16.554L-30.439,-16.554L-30.439,-31.847L-24.52,-31.847C-20.924,-31.847 -17.365,-30.652 -14.5,-28.48L-0.209,-17.636C-0.002,-17.48 0.08,-17.208 0,-16.964M-14.846,-5.358L-21.592,-5.358C-22.076,-5.358 -22.467,-5.751 -22.467,-6.233C-22.467,-6.715 -22.076,-7.108 -21.592,-7.108L-14.846,-7.108C-14.361,-7.108 -13.971,-6.715 -13.971,-6.233C-13.971,-5.751 -14.361,-5.358 -14.846,-5.358M-72.523,-16.554C-73.189,-16.554 -73.727,-17.093 -73.727,-17.757L-73.727,-27.312C-73.727,-29.812 -71.691,-31.847 -69.191,-31.847L-34.404,-31.847L-34.404,-16.554L-72.523,-16.554ZM27.898,-14.288L7.41,-18.253L-11.418,-32.538C-15.188,-35.398 -19.787,-36.946 -24.52,-36.946L-69.191,-36.946C-74.512,-36.946 -78.826,-32.632 -78.826,-27.312L-78.826,15.163C-78.826,17.824 -76.668,19.982 -74.008,19.982L-70.219,19.982C-69.27,11.419 -61.994,4.738 -53.184,4.738C-44.373,4.738 -37.098,11.419 -36.148,19.982L-12.545,19.982C-11.596,11.419 -4.318,4.738 4.49,4.738C13.301,4.738 20.578,11.419 21.525,19.982L28.934,19.982C31.594,19.982 33.75,17.824 33.75,15.163L33.75,-7.194C33.75,-10.655 31.295,-13.632 27.898,-14.288" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
-        const SVG_WALK = `<svg class="icon-svg" viewBox="0 0 24 35" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-562.258,-1245.25)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.690342,0,0,0.690342,42.1505,383.895)"><g transform="matrix(0.390332,0,0,0.390332,716.64,1189.77)"><path d="M0,24.759C6.839,24.759 12.381,19.217 12.381,12.381C12.381,5.542 6.839,0 0,0C-6.838,0 -12.381,5.542 -12.381,12.381C-12.381,19.217 -6.838,24.759 0,24.759" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.390332,0,0,0.390332,735.011,1228.05)"><path d="M0,-37.782L-8.21,-50.126C-10.203,-53.043 -12.848,-55.458 -15.93,-57.185L-32.029,-66.201C-34.979,-67.58 -37.21,-68.457 -40.013,-68.079L-47.716,-67.032C-50.589,-66.642 -53.208,-65.179 -55.044,-62.938L-69.707,-47.333L-83.136,-42.384C-85.68,-41.447 -87.046,-38.683 -86.242,-36.093L-86.179,-35.895C-85.389,-33.349 -82.766,-31.845 -80.169,-32.443L-69.224,-34.97C-66.495,-35.599 -63.902,-36.723 -61.582,-38.288L-53.971,-43.407L-51.282,-22.972C-51.086,-21.472 -51.388,-19.951 -52.142,-18.638L-74.932,20.944C-76.557,23.764 -75.595,27.368 -72.783,29.01L-72.587,29.124C-69.925,30.675 -66.519,29.926 -64.755,27.402L-39.281,-9.036L-31.564,6.371C-30.992,7.509 -30.236,8.544 -29.325,9.433L-12.204,26.174C-10.043,28.284 -6.625,28.378 -4.356,26.389L-4.082,26.152C-2.919,25.132 -2.212,23.691 -2.12,22.148C-2.028,20.605 -2.556,19.088 -3.59,17.94L-18.047,1.836L-25.9,-26.588L-25.929,-26.564L-28.182,-48.801L-20.222,-45.219L-7.492,-31.82C-5.891,-30.135 -3.299,-29.863 -1.386,-31.183L-1.255,-31.273C0.87,-32.736 1.429,-35.633 0,-37.782" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
-        const SVG_BIKE = `<svg class="icon-svg" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-553.349,-1303.65)"><g transform="matrix(1,0,0,1,36,40)"><g transform="matrix(0.805192,0,0,0.805192,164.22,237.993)"><g transform="matrix(0.401036,0,0,0.401036,448.306,1292.75)"><path d="M0,61.994C-9.723,61.994 -17.631,54.084 -17.631,44.361C-17.631,34.636 -9.723,26.725 0,26.725C0.656,26.725 1.299,26.768 1.936,26.838L-1.736,43.514L2.509,44.448L6.161,27.859C12.851,30.365 17.635,36.805 17.635,44.361C17.635,54.084 9.723,61.994 0,61.994M7.605,21.307L13.556,-5.72L9.311,-6.654L3.368,20.333C2.265,20.178 1.146,20.071 0,20.071C-13.395,20.071 -24.289,30.966 -24.289,44.361C-24.289,57.753 -13.395,68.648 0,68.648C13.393,68.648 24.289,57.753 24.289,44.361C24.289,33.623 17.281,24.507 7.605,21.307" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,480.158,1303.46)"><path d="M0,35.269C-9.241,35.269 -16.831,28.121 -17.563,19.066L-0.433,19.066L-0.433,14.719L-17.374,14.719C-15.978,6.38 -8.73,-0 0,-0C9.723,-0 17.633,7.911 17.633,17.636C17.633,27.359 9.723,35.269 0,35.269M0,-6.654C-12.406,-6.654 -22.649,2.698 -24.096,14.719L-28.687,14.719L-28.687,19.066L-24.217,19.066C-23.47,31.792 -12.911,41.923 0,41.923C13.393,41.923 24.287,31.028 24.287,17.636C24.287,4.241 13.393,-6.654 0,-6.654" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.401036,0,0,0.401036,464.193,1293.79)"><path d="M0,25.569L-5.274,17.75C-5.968,16.882 -5.525,16.082 -4.652,15.394C-3.782,14.702 2.498,11.779 2.498,11.779L0,25.569ZM20.804,-4.998L17.283,-23.088C16.74,-27.163 11.124,-31.964 5.33,-29.065L-22.105,-14.993C-23.871,-14.32 -24.754,-12.344 -24.077,-10.581C-23.404,-8.813 -21.428,-7.928 -19.666,-8.6L-0.106,-14.394L2.651,-3.81C2.651,-3.81 -13.301,6.452 -13.959,6.938C-17.245,9.375 -19.637,14.8 -16.442,18.837L-2.507,35.922L-5.497,51.189C-6.153,53.674 -4.671,56.221 -2.188,56.877C0.295,57.533 2.842,56.051 3.5,53.566L18.005,14.04C20.125,9.23 22.706,2.422 20.804,-4.998" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.399233,-0.0379867,-0.0379867,-0.399233,466.391,1280.66)"><path d="M-0.817,-0.038C3.95,-0.038 7.815,3.824 7.811,8.587C7.815,13.352 3.951,17.215 -0.817,17.212C-5.58,17.213 -9.442,13.351 -9.441,8.583C-9.442,3.825 -5.583,-0.041 -0.817,-0.038" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
-        const SVG_MEMO = `<svg class="icon-svg" viewBox="0 0 51 49" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-1026.44,-2198.73)"><g transform="matrix(1,0,0,1,36,130)"><g transform="matrix(1,0,0,1,0,70)"><g transform="matrix(0.394026,0,0,0.394026,1011.78,2006.56)"><path d="M0,82.402L0,55.942L39.726,16.217L39.726,-19.868L-54.16,-19.868L-54.16,102.27L39.726,102.27L39.726,69.136L26.459,82.402L0,82.402Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.394026,0,0,0.394026,1039.98,2015.77)"><path d="M0,-7.585L-4.97,-12.553C-7.984,-15.569 -12.872,-15.567 -15.885,-12.553L-20.535,-7.902L-4.649,7.984L0,3.335C3.014,0.319 3.014,-4.569 0,-7.585" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.394026,0,0,0.394026,1014.73,2020.62)"><path d="M0,23.348L0,39.234L15.886,39.234L55.12,-0.001L39.234,-15.886L0,23.348Z" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g></g></g></g></svg>`;
-        const SVG_STAY = `<svg class="icon-svg icon-svg-large" viewBox="0 0 49 74" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1,0,0,1,-923.523,-1578.17)"><g transform="matrix(1,0,0,1,36,130)"><g transform="matrix(1,0,0,1,40,70)"><g transform="matrix(0.722395,0,0,0.574177,852.485,1398.46)"><path d="M0,56.561L0,69.892L53.375,69.892L53.375,56.561C53.375,41.325 32.092,34.866 32.092,29.724L32.092,26.838C32.092,21.696 53.375,15.237 53.375,0.001L53.375,-13.331L0,-13.331L0,0.001C0,15.237 21.283,21.696 21.283,26.838L21.283,29.724C21.283,34.866 0,41.325 0,56.561" style="fill:rgb(245,127,51);fill-rule:nonzero;"/></g><g transform="matrix(0.722395,0,0,0.574177,563.461,1128.4)"><rect x="393.222" y="435" width="67.113" height="12" style="fill:rgb(245,127,51);"/></g><g transform="matrix(0.722395,0,0,0.574177,563.461,1260.47)"><rect x="393.222" y="319" width="67.113" height="14" style="fill:rgb(245,127,51);"/></g></g></g></g></svg>`;
+        // --- 0. 設定 ---
+        const FEEDBACK_URL = "https://forms.gle/pChcuFEeCsLpf9La7"; 
+        const APP_VERSION = '17.0';
+        function initMap() { console.log("Maps API Loaded"); }
 
-        const APP_VERSION = '5.4.1.3';
-        let mode = 'DASHBOARD'; 
-        let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
-        let savedLocations = JSON.parse(localStorage.getItem('savedLocations_v2')) || [];
-        let editingPlan = null;
-        let editingIndex = -1; 
-        let tempLocationData = null; 
+        window.onload = function() {
+            const fbLink = document.getElementById('feedback-link');
+            if(fbLink) fbLink.href = FEEDBACK_URL;
+            
+            // ★ URL共有データの読み込みチェック
+            checkImportUrl();
 
-        function initMap() { console.log("API Ready"); }
-
-        window.onload = () => { 
-            updateDatalist(); 
-            checkUrlImport(); 
-            if(mode === 'DASHBOARD') renderDashboard(); 
-            // モーダルのタイトルにアイコンをセット
-            document.getElementById('icon-trans-title').innerHTML = SVG_CAR_FREE;
-            document.getElementById('icon-stay-title').innerHTML = SVG_STAY;
-            document.getElementById('icon-memo-title').innerHTML = SVG_MEMO;
-            document.getElementById('icon-loc-title').innerHTML = "📍";
-        };
-
-        function triggerPrint() { window.print(); return false; }
-
-        function getSampleData() {
-            const date = new Date(); date.setDate(date.getDate()+1);
-            const ymd = date.toISOString().split('T')[0];
-            return {
-                id: 'sample', name: '千葉のダム巡り', baseTime: `${ymd}T12:00`, rounding: 0,
-                stops: [
-                    { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'集合', memo:'', isBase:false, timeStr:'07:40' },
-                    { type:'MOVE', mode:'WAIT', duration:0, dist:0 }, 
-                    { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'08:00', depTimeStr:'08:00' },
-                    { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['アクアライン'], trafficBuffer:0 },
-                    { type:'STOP', name:'矢那川ダム', location:'矢那川ダム', confirmed:true, stayTime:20, stayReason:'撮影', memo:'', isBase:false, timeStr:'08:50', depTimeStr:'09:10' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:49, dist:0, trafficBuffer:10 },
-                    { type:'STOP', name:'長柄ダム', location:'長柄ダム', confirmed:true, stayTime:20, stayReason:'撮影', memo:'カード取得', isBase:false, timeStr:'10:00', depTimeStr:'10:20' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:27, dist:0, trafficBuffer:0 },
-                    { type:'STOP', name:'高滝ダム記念館', location:'高滝ダム記念館', confirmed:true, stayTime:20, stayReason:'撮影', memo:'カード取得', isBase:false, timeStr:'10:50', depTimeStr:'11:10' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:50, dist:0, trafficBuffer:0 },
-                    { type:'STOP', name:'割烹料理「天平」', location:'割烹料理天平', confirmed:true, stayTime:60, stayReason:'<span class="input-guide">昼食</span>', memo:'<span class="input-guide">なめろうがお薦め</span>', isBase:true, timeStr:'12:00', depTimeStr:'13:00' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:51, dist:0, trafficBuffer:0 },
-                    { type:'STOP', name:'片倉ダム', location:'片倉ダム', confirmed:true, stayTime:10, stayReason:'撮影', memo:'', isBase:false, timeStr:'14:00', depTimeStr:'14:10' },
-                    { type:'MOVE', mode:'DRIVING_FREE', duration:10, dist:0, trafficBuffer:0 },
-                    { type:'STOP', name:'亀山ダム', location:'亀山ダム', confirmed:true, stayTime:20, stayReason:'撮影', memo:'カード取得', isBase:false, timeStr:'14:20', depTimeStr:'14:40' },
-                    { type:'MOVE', mode:'DRIVING_TOLL', duration:44, dist:0, roads:['アクアライン'], trafficBuffer:0 },
-                    { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'', memo:'', isBase:false, timeStr:'15:30', depTimeStr:'' }
-                ]
-            };
+            migrateData(); 
+            renderDashboard(); 
+            updateDatalist();
         }
 
-        function renderDashboard() {
-            mode = 'DASHBOARD';
-            let listHtml = '';
-            if (savedPlans.length > 0) {
-                savedPlans.forEach((p, i) => {
-                    listHtml += `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-orange-200 mb-4 flex justify-between items-center">
-                        <div><div class="font-bold text-lg" style="color:#f97316;">${p.name}</div><div class="text-xs text-orange-400">${new Date(p.updatedAt).toLocaleDateString()} 更新</div></div>
-                        <div class="flex gap-2"><button onclick="sharePlan(${i})" class="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded">🔗</button><button onclick="deletePlan(${i})" class="text-xs bg-orange-50 text-orange-400 px-3 py-1.5 rounded">削除</button><button onclick="openPlan(${i})" class="text-sm bg-orange-600 text-white px-4 py-1.5 rounded font-bold">開く</button></div>
-                    </div>`;
-                });
-            } else { listHtml = `<div class="text-center text-orange-200 py-8">保存されたプランはありません</div>`; }
-            document.getElementById('app-content').innerHTML = `
-                <div class="space-y-8 animate-fade-in">
-                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition" onclick="showSample()">
-                        <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-2"></div>
-                        <div class="p-6 text-center">
-                            <h3 class="text-xl font-extrabold mb-1" style="color:#f97316;">千葉のダム巡り</h3>
-                            <p class="text-xs text-orange-400 mb-4">サンプルプラン</p>
-                            <div class="text-sm text-orange-600 font-bold">👀 見本を見る / これを基に作成</div>
-                        </div>
-                    </div>
-                    <button onclick="startNewEdit()" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-lg font-bold rounded-2xl shadow-lg hover:opacity-90 transition">+ 新しい旅程を作成する</button>
-                    <div><h3 class="font-bold text-orange-800 mb-2 border-l-4 border-orange-500 pl-2">📂 マイ旅のしおり</h3>${listHtml}</div>
-                </div>`;
-        }
+        // --- 1. データ管理 ---
+        let planList = JSON.parse(localStorage.getItem('planList')) || [];
+        let savedLocations = JSON.parse(localStorage.getItem('savedLocations')) || [];
+        let currentPlan = null;
+        let mapInstances = {};
 
-        function renderTimeline() {
-            const isEdit = (mode === 'EDIT');
-            const isSample = (mode === 'SAMPLE');
-            const plan = editingPlan;
-            let mapContainerHtml = (!isEdit) ? `<div class="p-6 border-t border-orange-100 bg-orange-50 print:bg-white print:border-none"><div class="bg-white rounded-xl h-64 w-full border border-orange-200 overflow-hidden shadow-inner print:shadow-none" id="full-map-area"></div></div>` : '';
-            let html = `<div class="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 min-h-[600px] card"><div class="p-5 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-center print:text-orange-900 print:bg-white"><h2 class="text-xl font-extrabold mb-1">${plan.name}</h2></div><div class="p-4 sm:p-6 space-y-0">`;
-
-            plan.stops.forEach((item, i) => {
-                const isFirst = i === 0; const isStart = i === 2; const isLast = i === plan.stops.length - 1;
-                
-                if (item.type === 'STOP') {
-                    const timeDisp = item.timeStr || '00:00';
-                    let suffix = isFirst ? '集合' : (isStart ? '出発' : '到着');
-                    const dotClass = item.isBase ? 'border-orange-600 text-orange-600' : 'border-orange-300 text-orange-300';
-                    const dotIcon = item.isBase ? '★' : '●';
-
-                    let nameHtml = '';
-                    if (isEdit) {
-                        if (isFirst) {
-                            nameHtml = `<span class="input-readonly text-orange-400 text-sm text-input-small">${item.name || '（出発地と同じ）'}</span>`;
-                        } else {
-                            const val = item.name || '<span class="place-name input-guide">地点・施設名の入力</span>';
-                            const cls = item.name ? 'input-hole filled' : 'input-hole text-orange-300';
-                            const nameStyle = "display:inline-block; max-width:10em; line-height:1.1; word-break:break-all; text-align:left; margin-left:0; margin-right:auto;";
-
-                            nameHtml = `<span onclick="openLocationModal(${i})" class="${cls} text-input-small" style="${nameStyle}">${val}</span>`;
-                        }
-                    } else {
-                        nameHtml = `<span class="font-bold" style="color:#f97316;">${item.name}</span>`;
-                    }
-
-                    // --- 修正箇所：操作ボタン部分 ---
-                    let controls = (isEdit && i > 2) ? 
-                        `<div class="ml-auto flex flex-col gap-1 no-print">` + // flex-colで縦並び
-                        `${i > 4 ? `<button onclick="moveStop(${i},-1)" class="w-6 h-6 flex items-center justify-center text-[10px] bg-orange-50 rounded text-orange-600 border border-orange-100">↑</button>` : ''}` +
-                        `${!isLast ? `<button onclick="moveStop(${i},1)" class="w-6 h-6 flex items-center justify-center text-[10px] bg-orange-50 rounded text-orange-600 border border-orange-100">↓</button>` : ''}` +
-                        `<button onclick="deleteStop(${i})" class="w-6 h-6 flex items-center justify-center text-red-400 text-xs font-bold bg-red-50 rounded border border-red-100">×</button>` +
-                        `</div>` 
-                        : '';
-
-                    html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
-
-                    if (!isFirst && !isStart && !isLast) {
-                        let stayHtml = '';
-                        if (isEdit) {
-                            const rVal = item.stayReason || '<span class="input-guide">滞在理由</span>入力';
-                            const rCls = item.stayReason ? 'filled filled-orange' : 'text-orange-300';
-                            const tVal = item.stayTime || '00';
-                            const mVal = item.memo || 'メモ入力';
-                            const mCls = item.memo ? 'filled filled-orange' : 'text-orange-300';
-                            
-                            stayHtml = `
-                                <div class="flex items-center gap-2 text-sm text-orange-500 mt-1">
-                                    ${SVG_STAY}
-                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small">${rVal}</span> 滞在 
-                                    <span onclick="openStayModal(${i})" class="input-hole filled text-center filled-orange" style="min-width:30px">${tVal}</span> 分
-                                    <span onclick="openMemoModal(${i})" class="flex items-center gap-1 input-hole ${mCls} text-xs ml-2">${SVG_MEMO} ${mVal}</span>
-                                </div>`;
-                        } else {
-                            if (item.stayReason || item.stayTime > 0) {
-                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center">${SVG_STAY}</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} <span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span></div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5 flex items-center gap-1">${SVG_MEMO} ${item.memo}</div>` : ''}</div></div>`;
-                            }
-                        }
-                        if (stayHtml) html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
-
-                        const depTime = item.depTimeStr || '00:00'; 
-                        html += `<div class="timeline-item timeline-container pb-3 min-h-[30px]"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot border-orange-300 text-orange-300">●</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${depTime}</div><div class="flex-grow text-sm"><span class="${isEdit?'text-orange-300':'font-bold'}" style="${isEdit?'':'color:#f97316;'}">${item.name||'地点名'}</span> <span class="font-bold text-orange-500">出発</span></div></div></div>`;
-                    }
-                } else if (item.type === 'MOVE') {
-                    if (item.mode === 'WAIT') return;
-                    const mKey = item.mode; 
-                    const modeLabels = { 'DRIVING_FREE':'車', 'DRIVING_TOLL':'車', 'WALKING':'徒歩', 'BICYCLING':'自転車' };
-                    const iconMap = { 'DRIVING_FREE': SVG_CAR_FREE, 'DRIVING_TOLL': SVG_CAR_TOLL, 'WALKING': SVG_WALK, 'BICYCLING': SVG_BIKE };
-                    const icon = iconMap[mKey] || SVG_CAR_FREE;
-                    const dur = item.duration ? `${item.duration}分` : '00分';
-                    const isToll = (mKey === 'DRIVING_TOLL');
+        // ★★★ 共有機能: 読み込み (LZString対応) ★★★
+        function checkImportUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedData = urlParams.get('d'); // パラメータ名を 'd' に短縮
+            
+            if (sharedData) {
+                try {
+                    // LZStringで解凍
+                    const jsonString = LZString.decompressFromEncodedURIComponent(sharedData);
+                    if (!jsonString) throw new Error("Decompression failed");
                     
-                    let moveContent = isEdit ? `
-                        <div class="flex items-center gap-2 text-sm">
-                            <span onclick="openTransportModal(${i})" class="select-box">${icon} ${modeLabels[mKey]} ${isToll?'(有料)':''} ▼</span>
-                            <span class="text-orange-400">移動 ${dur} ${item.trafficBuffer > 0 ? `<span class="text-[10px] text-orange-500 font-bold ml-1">+${item.trafficBuffer}m</span>` : ''}</span>
-                        </div>` : `
-                        <div><div class="text-sm font-bold text-orange-500 flex items-center mb-1">${icon} ${modeLabels[mKey]}${isToll?'<span class="toll-tag">(有料)</span>':''}移動 <span class="font-normal ml-1" style="color:#f97316;">${dur}</span></div><div class="text-xs text-orange-400 leading-relaxed min-w-0 break-words font-bold">${isToll && item.roads ? item.roads.map(r => `<div>${r}</div>`).join('') : ''}</div></div>`;
-                    html += `<div class="timeline-item timeline-container pb-4"><div class="timeline-line"></div><div class="pl-[36px]">${moveContent}</div></div>`;
-                }
-            });
-            html += `</div></div>`; 
-            html += mapContainerHtml; 
-
-            let footer = isSample ? `<div class="mt-8 text-center pb-8 no-print"><button onclick="copySampleToEdit()" class="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xl font-extrabold rounded-2xl shadow-xl hover:scale-105 transition">✨ 新しくマイ「旅のしおり」をつくる</button></div>` : (isEdit ? `
-                <div class="mt-8 space-y-4 text-center pb-8 no-print">
-                    <button onclick="addNextStop()" class="w-full py-3 border-2 border-dashed border-orange-200 text-orange-300 font-bold rounded-xl">+ 地点を追加</button>
-                    <button onclick="openFinalizeModal()" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white text-xl font-extrabold rounded-2xl shadow-xl">✨ 旅のしおりをつくる</button>
-                </div>` : `
-                <div class="mt-8 no-print space-y-4 pb-8"><div class="flex gap-2">
-                    <button onclick="mode='EDIT'; renderTimeline();" class="flex-1 bg-orange-100 text-orange-700 font-bold py-3 rounded-xl">修正する</button>
-                    <button onclick="triggerPrint()" class="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg">📄 PDF / 印刷</button>
-                    <button onclick="saveCurrentPlan()" class="flex-1 bg-orange-600 text-white font-bold py-3 rounded-xl">保存する</button>
-                </div></div>`);
-
-            document.getElementById('app-content').innerHTML = html + footer;
-            if(!isEdit) setTimeout(initFullMap, 800); 
-        }
-
-        // --- ロジック関数 ---
-        function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
-        function copySampleToEdit() {
-            const sample = getSampleData();
-            editingPlan = { id: 'plan_' + Date.now(), name: '新規旅程プラン', baseTime: sample.baseTime, rounding: 0, stops: sample.stops.map(s => { if (s.type === 'MOVE') return { ...s, duration: 0, roads:[], trafficBuffer: 0 }; return { ...s, name:'', location:'', confirmed:false, timeStr:'00:00', depTimeStr:'00:00' }; }) };
-            editingPlan.stops[0].name = '（出発地と同じ）'; mode = 'EDIT'; renderTimeline();
-        }
-        function startNewEdit() { copySampleToEdit(); }
-        function addNextStop() { editingPlan.stops.push({ type:'MOVE', mode:'DRIVING_FREE', duration:0, trafficBuffer:0 }); editingPlan.stops.push({ type:'STOP', name:'', location:'', confirmed:false, stayTime:20, stayReason:'', memo:'', isBase:false, timeStr:'00:00' }); renderTimeline(); }
-        function deleteStop(idx) { if(idx <= 2 || idx === editingPlan.stops.length-1) { alert('この地点は削除できません'); return; } editingPlan.stops.splice(idx-1, 2); renderTimeline(); }
-        function moveStop(idx, dir) { const moveIdx = idx - 1; if (dir === -1) { if (moveIdx <= 2) return; const selfSet = editingPlan.stops.splice(moveIdx, 2); editingPlan.stops.splice(moveIdx - 2, 0, ...selfSet); } else { if (idx >= editingPlan.stops.length - 2) return; const selfSet = editingPlan.stops.splice(moveIdx, 2); editingPlan.stops.splice(moveIdx + 2, 0, ...selfSet); } renderTimeline(); }
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function openLocationModal(idx) { editingIndex = idx; const item = editingPlan.stops[idx]; document.getElementById('input-loc-name').value = item.name; document.getElementById('loc-search-res').textContent = item.confirmed ? `※確定済: ${item.location}` : '※確定を押して住所を確認してください'; tempLocationData = item.confirmed ? item.location : null; openModal('modal-location'); }
-        function validateLocation() { const val = document.getElementById('input-loc-name').value; if(!val) return; new google.maps.places.AutocompleteService().getPlacePredictions({ input: val }, (preds, status) => { const el = document.getElementById('loc-search-res'); if (status === 'OK' && preds.length > 0) { tempLocationData = preds[0].description; el.innerHTML = `<span class="text-orange-600">✅ OK: ${tempLocationData}</span>`; } else { tempLocationData = null; el.innerHTML = `<span class="text-orange-300">❌ 見つかりません</span>`; } }); }
-        function saveToDictionary() { const val = document.getElementById('input-loc-name').value; if(val && !savedLocations.includes(val)) { savedLocations.push(val); localStorage.setItem('savedLocations_v2', JSON.stringify(savedLocations)); updateDatalist(); alert('辞書に保存しました'); } }
-        function confirmLocation() { if(!tempLocationData) { alert('確定を行ってください'); return; } const item = editingPlan.stops[editingIndex]; item.name = document.getElementById('input-loc-name').value; item.location = tempLocationData; item.confirmed = true; if (editingIndex === 2) { editingPlan.stops[0].name = item.name; editingPlan.stops[0].location = item.location; editingPlan.stops[0].confirmed = true; } closeModal('modal-location'); renderTimeline(); }
-        function openTransportModal(idx) { editingIndex = idx; const item = editingPlan.stops[idx]; document.getElementById('input-transport').value = item.mode; document.getElementById('input-traffic-buffer').value = item.trafficBuffer || 0; openModal('modal-transport'); }
-        function confirmTransport() { const item = editingPlan.stops[editingIndex]; item.mode = document.getElementById('input-transport').value; item.trafficBuffer = parseInt(document.getElementById('input-traffic-buffer').value); closeModal('modal-transport'); renderTimeline(); }
-        function openStayModal(idx) { editingIndex = idx; const item = editingPlan.stops[idx]; document.getElementById('input-stay-reason').value = item.stayReason; document.getElementById('input-stay-time').value = item.stayTime; document.getElementById('input-is-base').checked = item.isBase; openModal('modal-stay'); }
-        function confirmStay() { const item = editingPlan.stops[editingIndex]; item.stayReason = document.getElementById('input-stay-reason').value; item.stayTime = parseInt(document.getElementById('input-stay-time').value); if(document.getElementById('input-is-base').checked) { editingPlan.stops.forEach(s => { if(s.type==='STOP') s.isBase = false; }); item.isBase = true; } else { item.isBase = false; } closeModal('modal-stay'); renderTimeline(); }
-        function openMemoModal(idx) { editingIndex = idx; document.getElementById('input-memo').value = editingPlan.stops[idx].memo; openModal('modal-memo'); }
-        function confirmMemo() { editingPlan.stops[editingIndex].memo = document.getElementById('input-memo').value; closeModal('modal-memo'); renderTimeline(); }
-        function openFinalizeModal() { if(editingPlan.stops.filter(s => s.type==='STOP' && !s.confirmed && s.name !== '（出発地と同じ）').length > 0) { alert('未確定の地点があります'); return; } if(!editingPlan.stops.some(s => s.type==='STOP' && s.isBase)) { alert('時間の基点（★）が設定されていません'); return; } const d = new Date(); d.setDate(d.getDate()+1); d.setHours(8,0,0,0); document.getElementById('final-base-time').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16); openModal('modal-finalize'); }
-        async function executeCalculation() {
-            editingPlan.name = document.getElementById('final-plan-name').value; editingPlan.baseTime = document.getElementById('final-base-time').value; closeModal('modal-finalize');
-            document.getElementById('app-content').innerHTML = '<div class="text-center p-20"><div class="text-3xl animate-bounce">🚗</div><div class="mt-4 font-bold text-orange-400">ルート計算中...</div></div>';
-            const ds = new google.maps.DirectionsService();
-            for(let i=0; i<editingPlan.stops.length; i++) {
-                const item = editingPlan.stops[i];
-                if (item.type === 'MOVE') {
-                    if (item.mode === 'WAIT') continue;
-                    const start = editingPlan.stops[i-1].location; const end = editingPlan.stops[i+1].location;
-                    let gMode = (item.mode === 'WALKING') ? 'WALKING' : (item.mode === 'BICYCLING' ? 'BICYCLING' : 'DRIVING');
-                    try {
-                        const res = await new Promise(resolve => ds.route({ origin: start, destination: end, travelMode: gMode, avoidTolls: (item.mode === 'DRIVING_FREE') }, (r, s) => resolve(s==='OK'?r:null)));
-                        if (res) {
-                            const leg = res.routes[0].legs[0]; item.duration = Math.ceil(leg.duration.value / 60) + (item.trafficBuffer || 0);
-                            let roads = []; if (gMode === 'DRIVING' && item.mode === 'DRIVING_TOLL') { leg.steps.forEach(s => { const clean = s.instructions.replace(/<[^>]*>/g, ' ').replace(/[（(].*?[)）]/g, '').trim(); if (clean.match(/(高速|自動車道|スカイライン|有料道路|ライン|京葉道路|アクアライン)/)) roads.push(clean); }); item.roads = [...new Set(roads)]; }
-                        }
-                    } catch(e) {}
+                    const importedPlan = JSON.parse(jsonString);
+                    
+                    // IDを新しくして衝突を防ぐ
+                    importedPlan.id = 'import_' + Date.now();
+                    importedPlan.planName = "【共有】" + importedPlan.planName;
+                    importedPlan.updatedAt = new Date().toISOString();
+                    
+                    // リストに追加
+                    planList.unshift(importedPlan);
+                    saveAllPlans();
+                    
+                    // URLパラメータを削除
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    showAlert('共有されたプランを読み込みました！マイページを確認してください。', 'success');
+                } catch (e) {
+                    console.error("Import Error:", e);
+                    showAlert('共有データの読み込みに失敗しました。URLが破損しているか、古い形式の可能性があります。', 'error');
                 }
             }
-            calculateSchedule(); mode = 'RESULT'; renderTimeline();
         }
-        function calculateSchedule() {
-            const stops = editingPlan.stops; const baseIdx = stops.findIndex(s => s.type==='STOP' && s.isBase); const addMin = (d, m) => new Date(d.getTime() + m*60000); const fmt = (d) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-            let t = new Date(editingPlan.baseTime); stops[baseIdx].arrTime = t; stops[baseIdx].depTime = addMin(t, stops[baseIdx].stayTime);
-            for(let i=baseIdx+1; i<stops.length; i++) { if(stops[i].type === 'STOP') { stops[i].arrTime = addMin(stops[i-2].depTime, stops[i-1].duration || 0); stops[i].depTime = addMin(stops[i].arrTime, stops[i].stayTime); } }
-            for(let i=baseIdx-1; i>=0; i--) { if(stops[i].type === 'STOP') { stops[i].depTime = (stops[i+1].mode === 'WAIT') ? stops[i+2].arrTime : addMin(stops[i+2].arrTime, -(stops[i+1].duration||0)); stops[i].arrTime = addMin(stops[i].depTime, -stops[i].stayTime); } }
-            stops.forEach(s => { if(s.type==='STOP') { s.timeStr = fmt(s.arrTime); s.depTimeStr = fmt(s.depTime); } });
+
+        // ★★★ 共有機能: 書き出し (LZString対応) ★★★
+        function sharePlan(id) {
+            const plan = planList.find(p => p.id === id);
+            if (!plan) return;
+
+            // データ断捨離: 必要な情報だけを抽出したクリーンなオブジェクトを作成
+            const cleanPlan = {
+                v: APP_VERSION,
+                planName: plan.planName,
+                baseDateTime: plan.baseDateTime,
+                roundingMinutes: plan.roundingMinutes,
+                gatheringMinutes: plan.gatheringMinutes,
+                stops: plan.stops.map(s => ({
+                    name: s.name,
+                    location: s.location,
+                    isBaseTime: s.isBaseTime,
+                    stayMinutes: s.stayMinutes,
+                    stayReason: s.stayReason,
+                    memo: s.memo
+                })),
+                segments: plan.segments.map(s => ({
+                    travelMode: s.travelMode
+                    // mockRoutesなどは共有しない（再計算させるため）
+                }))
+            };
+
+            try {
+                // JSON -> 文字列 -> LZString圧縮
+                const jsonString = JSON.stringify(cleanPlan);
+                const compressed = LZString.compressToEncodedURIComponent(jsonString);
+                
+                // 現在のURLのベースを取得
+                const baseUrl = window.location.origin + window.location.pathname;
+                const shareUrl = `${baseUrl}?d=${compressed}`;
+
+                // クリップボードにコピー
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        showAlert('🔗 短縮URLをコピーしました！LINEなどで送れます。', 'success');
+                    }).catch(err => {
+                        prompt("以下のURLをコピーして送ってください:", shareUrl);
+                    });
+                } else {
+                    prompt("以下のURLをコピーして送ってください:", shareUrl);
+                }
+
+            } catch (e) {
+                console.error(e);
+                showAlert('データの圧縮に失敗しました。', 'error');
+            }
         }
+
+        const generateDefaultItinerary = () => {
+            const now = new Date();
+            now.setDate(now.getDate() + 1); 
+            now.setHours(12, 0, 0, 0);
+            const baseTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+            return {
+                id: 'plan_' + Date.now(),
+                version: APP_VERSION,
+                planName: "新規旅程プラン",
+                updatedAt: new Date().toISOString(),
+                baseDateTime: baseTime,
+                roundingMinutes: 0,
+                gatheringMinutes: 10,
+                stops: [
+                    { id: 's1', name: '', location: '', isBaseTime: false, stayMinutes: 0, stayReason: '', memo: '' },
+                    { id: 's2', name: '', location: '', isBaseTime: false, stayMinutes: 10, stayReason: '', memo: '' },
+                    { id: 's3', name: '', location: '', isBaseTime: true, stayMinutes: 10, stayReason: '', memo: '' },
+                    { id: 's4', name: '', location: '', isBaseTime: false, stayMinutes: 0, stayReason: '', memo: '' }
+                ],
+                segments: [
+                    { travelMode: 'DRIVING', mockRoutes: [], selectedRoute: null },
+                    { travelMode: 'DRIVING', mockRoutes: [], selectedRoute: null },
+                    { travelMode: 'DRIVING', mockRoutes: [], selectedRoute: null }
+                ],
+                currentPage: 'input'
+            };
+        };
+
+        const getSamplePlan = () => {
+            const now = new Date();
+            now.setDate(now.getDate() + 1);
+            now.setHours(12, 0, 0, 0);
+            const baseTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+            return {
+                id: 'sample',
+                version: APP_VERSION,
+                planName: "東京観光プラン (コピー)",
+                updatedAt: new Date().toISOString(),
+                baseDateTime: baseTime,
+                roundingMinutes: 10,
+                gatheringMinutes: 10,
+                stops: [
+                    { id: 'ss1', name: '東京駅', location: '日本、東京都千代田区丸の内１丁目', isBaseTime: false, stayMinutes: 0, stayReason: '', memo: '' },
+                    { id: 'ss2', name: '浅草寺', location: '日本、東京都台東区浅草２丁目３−１ 浅草寺', isBaseTime: false, stayMinutes: 60, stayReason: '観光', memo: '仲見世通りでお土産' },
+                    { id: 'ss3', name: '東京スカイツリー', location: '日本、〒131-0045 東京都墨田区押上１丁目１−２', isBaseTime: true, stayMinutes: 90, stayReason: '展望台・昼食', memo: '12:00に予約済み' },
+                    { id: 'ss4', name: '上野駅', location: '日本、東京都台東区上野７丁目１−１', isBaseTime: false, stayMinutes: 0, stayReason: '', memo: '' }
+                ],
+                segments: [
+                    { travelMode: 'DRIVING', mockRoutes: [], selectedRoute: null },
+                    { travelMode: 'WALKING', mockRoutes: [], selectedRoute: null },
+                    { travelMode: 'DRIVING', mockRoutes: [], selectedRoute: null }
+                ],
+                currentPage: 'input'
+            };
+        };
+
+        function migrateData() {
+            const oldState = localStorage.getItem('itineraryState');
+            if (oldState && planList.length === 0) {
+                try {
+                    const parsed = JSON.parse(oldState);
+                    parsed.id = 'plan_' + Date.now();
+                    parsed.updatedAt = new Date().toISOString();
+                    planList.push(parsed);
+                    localStorage.setItem('planList', JSON.stringify(planList));
+                } catch(e) {}
+            }
+        }
+
+        function createNewPlan() {
+            const newPlan = generateDefaultItinerary();
+            planList.unshift(newPlan);
+            saveAllPlans();
+            loadPlan(newPlan.id);
+        }
+
+        function createFromSample() {
+            const sample = getSamplePlan();
+            const newPlan = JSON.parse(JSON.stringify(sample));
+            newPlan.id = 'plan_' + Date.now();
+            newPlan.updatedAt = new Date().toISOString();
+            newPlan.segments.forEach(seg => { seg.mockRoutes = []; seg.selectedRoute = null; });
+            planList.unshift(newPlan);
+            saveAllPlans();
+            loadPlan(newPlan.id);
+        }
+
+        function loadPlan(id) {
+            currentPlan = planList.find(p => p.id === id);
+            if (!currentPlan) return;
+            navigate('input');
+        }
+
+        function deletePlan(id) {
+            if(!confirm('削除しますか？')) return;
+            planList = planList.filter(p => p.id !== id);
+            saveAllPlans();
+            renderDashboard();
+        }
+
+        function duplicatePlan(id) {
+            const src = planList.find(p => p.id === id);
+            if(!src) return;
+            const copy = JSON.parse(JSON.stringify(src));
+            copy.id = 'plan_' + Date.now();
+            copy.planName += ' (コピー)';
+            copy.updatedAt = new Date().toISOString();
+            planList.unshift(copy);
+            saveAllPlans();
+            renderDashboard();
+        }
+
+        function saveState() {
+            if (!currentPlan) return;
+            currentPlan.updatedAt = new Date().toISOString();
+            const idx = planList.findIndex(p => p.id === currentPlan.id);
+            if (idx !== -1) planList[idx] = currentPlan;
+            saveAllPlans();
+            updateDatalist();
+        }
+
+        function saveAllPlans() {
+            localStorage.setItem('planList', JSON.stringify(planList));
+            localStorage.setItem('savedLocations', JSON.stringify(savedLocations));
+        }
+
+        // --- 2. ユーティリティ & 計算 ---
+        function addMinutes(iso, m) { const d=new Date(iso); d.setMinutes(d.getMinutes()+m); const tz=d.getTimezoneOffset()*60000; return (new Date(d-tz)).toISOString().slice(0,16); }
+        function formatTime(iso) { if(!iso) return "--:--"; const d=new Date(iso); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; }
+        function formatDate(iso) { if(!iso) return ""; const d=new Date(iso); return d.toLocaleDateString(); }
+        function getModeLabel(m) { const l={'DRIVING':'車','WALKING':'徒歩','BICYCLING':'自転車','TRANSIT':'電車'}; return l[m]||'車'; }
+        function stripHtml(html) { let tmp=document.createElement("DIV"); tmp.innerHTML=html; return tmp.textContent||tmp.innerText||""; }
+        function ceilTime(iso, unit) { if(!unit||unit===0) return iso; const d=new Date(iso); const m=d.getMinutes(); const r=m%unit; if(r===0)return iso; d.setMinutes(m+(unit-r)); d.setSeconds(0); const tz=d.getTimezoneOffset()*60000; return (new Date(d-tz)).toISOString().slice(0,16); }
+        function floorTime(iso, unit) { if(!unit||unit===0) return iso; const d=new Date(iso); const m=d.getMinutes(); const r=m%unit; if(r===0)return iso; d.setMinutes(m-r); d.setSeconds(0); const tz=d.getTimezoneOffset()*60000; return (new Date(d-tz)).toISOString().slice(0,16); }
+
+        // --- 3. Google API ---
+        function validateLocation(id) {
+            const stop = currentPlan.stops.find(s=>s.id===id);
+            if(!stop.name) return showAlert('地点名を入力してください','error');
+            showAlert('住所を確定中...', 'info');
+            new google.maps.places.AutocompleteService().getPlacePredictions({ input: stop.name }, (preds, status) => {
+                if (status === 'OK' && preds.length > 0) {
+                    stop.location = preds[0].description;
+                    saveState(); renderInputPage();
+                    showAlert(`✅ 住所確定: ${stop.name}`, 'success');
+                } else {
+                    stop.location = ''; 
+                    saveState(); renderInputPage();
+                    showAlert('住所が見つかりませんでした。', 'error');
+                }
+            });
+        }
+        
+        async function fetchRealRoutes(index) {
+            const seg = currentPlan.segments[index];
+            const start = currentPlan.stops[index].location;
+            const end = currentPlan.stops[index+1].location;
+            const mode = seg.travelMode || 'DRIVING';
+            const depTime = new Date(currentPlan.baseDateTime);
+
+            return new Promise((resolve) => {
+                const ds = new google.maps.DirectionsService();
+                ds.route({
+                    origin: start, destination: end, travelMode: mode, 
+                    drivingOptions: mode==='DRIVING' ? { departureTime: depTime } : undefined,
+                    provideRouteAlternatives: true
+                }, (res, status) => {
+                    if (status === 'OK') {
+                        seg.mockRoutes = res.routes.slice(0,3).map((r, i) => {
+                            let roadNames = new Set();
+                            r.legs[0].steps.forEach(step => {
+                                const txt = stripHtml(step.instructions);
+                                if(txt.includes('有料') || txt.includes('高速') || txt.includes('自動車道') || txt.includes('スカイライン') || txt.includes('料金所')) {
+                                    const match = txt.match(/([^\s「」]+(?:高速|自動車道|ライン|スカイウェイ|道路)[^\s]*)/);
+                                    if(match) roadNames.add(match[1]);
+                                }
+                            });
+                            if(mode==='DRIVING' && roadNames.size === 0 && (r.summary.includes('高速') || r.summary.includes('有料'))) roadNames.add(r.summary);
+                            return {
+                                id: `r-${index}-${i}`, label: r.summary, durationMinutes: Math.ceil(r.legs[0].duration.value / 60),
+                                desc: stripHtml(r.summary), roads: Array.from(roadNames), overview_path: r.overview_path
+                            };
+                        });
+                        if(!seg.selectedRoute) seg.selectedRoute = seg.mockRoutes[0].id;
+                        resolve(true);
+                    } else {
+                        seg.mockRoutes = [];
+                        resolve(false);
+                    }
+                });
+            });
+        }
+
+        // --- 4. 画面描画 ---
+        function navigate(page) {
+            const nav = document.getElementById('editor-nav');
+            if (page === 'dashboard') {
+                currentPlan = null;
+                nav.classList.add('hidden');
+                renderDashboard();
+                return;
+            }
+            if (!currentPlan) return navigate('dashboard');
+            
+            currentPlan.currentPage = page;
+            nav.classList.remove('hidden');
+            document.querySelectorAll('#nav-input, #nav-selection, #nav-shiori').forEach(el => {
+                el.classList.remove('text-indigo-600', 'border-indigo-600');
+                el.classList.add('text-gray-500', 'border-transparent');
+            });
+            const active = document.getElementById(`nav-${page}`);
+            if(active) {
+                active.classList.remove('text-gray-500', 'border-transparent');
+                active.classList.add('text-indigo-600', 'border-indigo-600');
+            }
+
+            if(page === 'input') renderInputPage();
+            else if(page === 'selection') renderSelectionPage();
+            else if(page === 'shiori') renderSummaryPage();
+        }
+
+        function validateAndNavigate(targetPage) {
+            if (targetPage !== 'input' && currentPlan.currentPage !== 'input') return navigate(targetPage);
+            const unvalidatedStops = currentPlan.stops.filter(s => !s.location || s.location.trim() === '');
+            if (unvalidatedStops.length > 0) {
+                const names = unvalidatedStops.map(s => s.name || '地点');
+                showAlert(`⚠️ 【${names.join(', ')}】の住所が未確定です。\n各地点の「確定」ボタンを押してください。`, 'error');
+                if (targetPage !== 'input') navigate('input');
+                return;
+            }
+            navigate(targetPage);
+        }
+
+        // ■ 0. ダッシュボード
+        function renderDashboard() {
+            const el = document.getElementById('app-content');
+            let plansHtml = '';
+            if (planList.length === 0) {
+                plansHtml = `<div class="text-center py-10 text-gray-500">まだプランがありません。<br>「新規作成」ボタンから旅の計画を始めましょう！</div>`;
+            } else {
+                plansHtml = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+                planList.forEach(p => {
+                    const placeCount = p.stops.length;
+                    plansHtml += `
+                        <div class="bg-white p-6 rounded-xl shadow border border-gray-100 card-hover flex flex-col justify-between h-full">
+                            <div>
+                                <h3 class="font-bold text-xl text-indigo-800 mb-2 truncate">${p.planName || '無題のプラン'}</h3>
+                                <p class="text-xs text-gray-400 mb-4">更新: ${formatDate(p.updatedAt)}</p>
+                                <div class="text-sm text-gray-600 mb-4 bg-gray-50 p-2 rounded">
+                                    📍 ${placeCount}箇所 / 📅 ${formatDate(p.baseDateTime)}
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center mt-4 border-t pt-4">
+                                <div class="flex gap-2">
+                                    <button onclick="sharePlan('${p.id}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold" title="共有">🔗 共有</button>
+                                    <button onclick="duplicatePlan('${p.id}')" class="text-xs text-gray-400 hover:text-indigo-600">複製</button>
+                                    <button onclick="deletePlan('${p.id}')" class="text-xs text-red-300 hover:text-red-500">削除</button>
+                                </div>
+                                <button onclick="loadPlan('${p.id}')" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow hover:bg-indigo-700">開く 🚀</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                plansHtml += `</div>`;
+            }
+
+            let locHtml = '';
+            if (savedLocations.length === 0) {
+                locHtml = '<p class="text-sm text-gray-400">保存された地点はありません。</p>';
+            } else {
+                locHtml = `<div class="flex flex-wrap gap-2">`;
+                savedLocations.forEach((loc, i) => {
+                    locHtml += `<span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                        ${loc} <button onclick="removeSavedLocation(${i})" class="ml-2 text-gray-400 hover:text-red-500 font-bold">×</button>
+                    </span>`;
+                });
+                locHtml += `</div>`;
+            }
+
+            el.innerHTML = `
+                <div class="space-y-12">
+                    <div class="text-center">
+                         <h2 class="text-3xl font-extrabold text-gray-800 mb-4">マイページ</h2>
+                         <div class="flex justify-center gap-4 flex-wrap">
+                             <button onclick="createFromSample()" class="px-6 py-3 bg-white border-2 border-indigo-200 text-indigo-600 font-bold rounded-full shadow hover:bg-indigo-50 transition flex flex-col items-center">
+                                <span class="text-xs text-indigo-400">使い方をチェック</span>
+                                📖 サンプルプランから作成
+                             </button>
+                             <button onclick="createNewPlan()" class="px-8 py-3 bg-gradient-brand text-white text-lg font-bold rounded-full shadow-xl hover:opacity-90 transition transform hover:-translate-y-1">
+                                + 新しい旅程を作成する
+                             </button>
+                         </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-700 mb-4 border-l-4 border-indigo-500 pl-3">📂 保存済みプラン</h3>
+                        ${plansHtml}
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4">📖 保存済み地点 (${savedLocations.length}件)</h3>
+                        ${locHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ■ 1. 入力画面
+        function renderInputPage() {
+            while(currentPlan.segments.length < currentPlan.stops.length - 1) currentPlan.segments.push({ travelMode: 'DRIVING', mockRoutes: [], selectedRoute: null });
+
+            let h = `
+                <div class="space-y-6">
+                    <div class="bg-indigo-700 p-4 rounded-xl shadow-lg -mt-2 mb-4">
+                        <label class="block text-xs font-bold text-indigo-200 mb-1">プラン名</label>
+                        <input type="text" value="${currentPlan.planName}" onchange="currentPlan.planName=this.value;saveState();" class="w-full p-2 rounded text-lg font-bold text-gray-800" placeholder="プラン名を入力">
+                    </div>
+                    <div class="p-5 bg-white rounded-xl shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="text-xs font-bold text-gray-500">基点日時</label><input type="datetime-local" value="${currentPlan.baseDateTime}" onchange="currentPlan.baseDateTime=this.value;saveState();" class="w-full p-2 border rounded bg-gray-50 font-bold"></div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500">時間表示切上（0:07を0:10に）</label>
+                            <select onchange="updateRounding(this.value)" class="w-full p-2 border rounded bg-gray-50 font-bold">
+                                <option value="0" ${currentPlan.roundingMinutes===0?'selected':''}>なし</option>
+                                <option value="5" ${currentPlan.roundingMinutes===5?'selected':''}>5分単位</option>
+                                <option value="10" ${currentPlan.roundingMinutes===10?'selected':''}>10分単位</option>
+                            </select>
+                        </div>
+                        <div><label class="text-xs font-bold text-gray-500">集合時間</label><select onchange="currentPlan.gatheringMinutes=parseInt(this.value);saveState();" class="w-full p-2 border rounded bg-gray-50 font-bold">${[5,10,15,20,30,45,60].map(m=>`<option value="${m}" ${currentPlan.gatheringMinutes===m?'selected':''}>${m}分前</option>`).join('')}</select></div>
+                    </div>
+                    <div class="space-y-4">`;
+
+            currentPlan.stops.forEach((s, i) => {
+                const isFirst=i===0, isLast=i===currentPlan.stops.length-1;
+                const moveUp = !isFirst ? `<button onclick="moveStop(${i}, -1)" class="text-gray-400 hover:text-indigo-600 px-1">↑</button>` : '';
+                const moveDown = !isLast ? `<button onclick="moveStop(${i}, 1)" class="text-gray-400 hover:text-indigo-600 px-1">↓</button>` : '';
+                
+                const isValidated = s.location && s.location.trim() !== '';
+                const btnColor = isValidated ? 'bg-green-100 text-green-700 border-green-200' : 'bg-indigo-100 text-indigo-700 border-indigo-200';
+                const btnText = isValidated ? '確定済' : '確定';
+                const validationStatus = isValidated ? 
+                    `<p class="text-xs font-bold text-amber-600 mt-1 pl-1 truncate">※Google検索: ${s.location}</p>` : 
+                    `<p class="text-xs text-gray-400 mt-1 pl-1">※Google検索: 確定して住所が合っているか確認して下さい</p>`;
+
+                h += `
+                    <div class="bg-white p-5 rounded-xl border ${s.isBaseTime ? 'border-red-500 ring-2 ring-red-100' : 'border-gray-200'} shadow-sm relative">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-lg text-gray-800 flex items-center">
+                                ${i+1}. ${s.name || '地点'} ${isFirst?'出発':isLast?'到着':'経由'}
+                                ${s.isBaseTime?'<span class="text-xs bg-red-100 text-red-700 px-2 rounded ml-2 font-bold">★ 基点</span>':''}
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <div class="flex border rounded bg-gray-50">${moveUp}${moveDown}</div>
+                                ${(!isFirst && !isLast)?`<button onclick="removeStop(${i})" class="text-red-400 text-sm hover:text-red-600">削除</button>`:''}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-xs font-bold text-gray-400">地点名</label>
+                            <div class="relative flex items-center">
+                                <input type="text" list="saved-locations-list" value="${s.name}" onchange="updateName(${i}, this.value)" 
+                                    class="w-full p-3 pr-20 border rounded-lg font-bold text-lg focus:ring-2 focus:ring-indigo-300 outline-none" 
+                                    placeholder="例　東京駅">
+                                <button onclick="validateLocation('${s.id}')" 
+                                    class="absolute right-2 top-2 bottom-2 px-3 rounded-md text-xs font-bold border ${btnColor} hover:opacity-80 transition shadow-sm">
+                                    ${btnText}
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                ${validationStatus}
+                                <button onclick="saveLoc('${s.id}')" class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500 hover:bg-gray-200 mt-1">辞書登録</button>
+                            </div>
+                        </div>
+                        ${(!isFirst && !isLast) ? `
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div><label class="text-xs font-bold text-gray-400">滞在時間 (分)</label><input type="number" value="${s.stayMinutes}" onchange="currentPlan.stops[${i}].stayMinutes=parseInt(this.value);saveState();" class="w-full p-2 border rounded text-center font-bold"></div>
+                            <div><label class="text-xs font-bold text-gray-400">滞在理由</label><input type="text" value="${s.stayReason}" onchange="currentPlan.stops[${i}].stayReason=this.value;saveState();" class="w-full p-2 border rounded" placeholder="例　昼食"></div>
+                        </div>` : ''}
+                        <div class="mb-3"><label class="text-xs font-bold text-gray-400">メモ</label><input type="text" value="${s.memo}" onchange="currentPlan.stops[${i}].memo=this.value;saveState();" class="w-full p-2 border rounded bg-yellow-50 placeholder-yellow-200" placeholder="例: レストラン予約済み"></div>
+                        <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
+                            <input type="radio" name="base" ${s.isBaseTime?'checked':''} onchange="setBase(${i})" class="text-red-600 accent-red-600">
+                            <span class="text-sm font-bold ${s.isBaseTime?'text-red-600':'text-gray-500'}">この時間をスケジュールの基点にする</span>
+                        </div>
+                        ${!isLast ? `
+                        <div class="mt-4 pt-3 bg-gray-50 -mx-5 -mb-5 px-5 pb-4 border-t border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <p class="text-xs text-gray-400 font-bold">▼ 移動手段:</p>
+                                <div class="flex gap-1">
+                                    ${['DRIVING','WALKING','BICYCLING'].map(m => `
+                                        <button onclick="changeMode(${i}, '${m}')" class="px-3 py-1 rounded text-sm font-bold transition-all ${currentPlan.segments[i]?.travelMode===m ? 'bg-indigo-600 text-white shadow' : 'bg-white border text-gray-500'}">${getModeLabel(m)}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>` : ''}
+                    </div>`;
+            });
+
+            h += `</div>
+                  <button onclick="addStop()" class="w-full py-4 mt-4 border-2 border-dashed border-gray-300 text-gray-500 font-bold rounded-xl hover:border-indigo-500 hover:text-indigo-500 transition">+ 地点を追加</button>
+                  <div class="h-10"></div>
+                  <button onclick="validateAndNavigate('selection')" class="w-full py-5 bg-gradient-brand text-white font-extrabold text-xl rounded-2xl shadow-xl hover:opacity-90 transition transform hover:-translate-y-1">次へ：ルート選択 🚀</button>
+                </div>`;
+            document.getElementById('app-content').innerHTML = h;
+        }
+
+        // ... (renderSelectionPage, renderSummaryPage, helper functions - 省略なし) ...
+        async function renderSelectionPage() {
+            const el = document.getElementById('app-content');
+            el.innerHTML = '<div class="text-center p-20"><div class="text-2xl font-bold text-indigo-600 mb-2">ルート計算中...</div><p class="text-gray-500">Google Maps APIと通信しています</p></div>';
+
+            for(let i=0; i<currentPlan.segments.length; i++) {
+                if(currentPlan.stops[i].location && currentPlan.stops[i+1].location) await fetchRealRoutes(i);
+            }
+            saveState();
+
+            let h = `<h2 class="text-xl font-bold mb-6 text-gray-800">2. ルート確認</h2><div class="space-y-8">`;
+            currentPlan.segments.forEach((seg, i) => {
+                const startName = currentPlan.stops[i].name;
+                const endName = currentPlan.stops[i+1].name;
+                h += `<div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                        <div class="bg-gray-50 p-3 border-b border-gray-200 flex justify-between items-center"><span class="font-bold text-gray-700">区間 ${i+1}: ${startName} → ${endName} (${getModeLabel(seg.travelMode)})</span></div>
+                        <div class="p-4">`;
+                if(!seg.mockRoutes || seg.mockRoutes.length===0) {
+                    h += `<p class="text-red-500">ルートが見つかりませんでした。</p>`;
+                } else {
+                    h += `<div class="space-y-3 mb-4">`;
+                    seg.mockRoutes.forEach(r => {
+                        const isSel = r.id === seg.selectedRoute;
+                        let roadsHtml = '';
+                        if(r.roads.length > 0) roadsHtml = `<div class="mt-2 text-xs text-gray-600 bg-gray-50 p-3 rounded border border-gray-200"><p class="font-bold mb-1 text-gray-500">有料区間あり:</p>${r.roads.map((name, idx) => `<div>${['①','②','③','④','⑤'][idx]||'・'} ${name}</div>`).join('')}</div>`;
+                        else if (seg.travelMode === 'DRIVING') roadsHtml = `<div class="mt-2 text-xs text-green-600 font-bold pl-2">無料区間 / 下道</div>`;
+                        
+                        h += `<div onclick="selectRoute(${i}, '${r.id}')" class="p-4 border-2 rounded-lg cursor-pointer transition-all ${isSel ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 hover:border-indigo-300'}">
+                                <div class="flex justify-between items-start"><div class="flex-1"><div class="font-bold text-lg text-gray-800">${r.label}</div><div class="text-sm text-gray-500">${r.durationMinutes}分</div>${roadsHtml}</div>${isSel ? '<span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold">選択中</span>' : ''}</div>
+                              </div>`;
+                    });
+                    h += `</div><div id="map-area-${i}" class="w-full h-64 bg-gray-200 rounded-lg"></div>`;
+                }
+                h += `</div></div>`;
+            });
+            h += `</div><div class="mt-10 flex gap-4"><button onclick="navigate('input')" class="flex-1 py-4 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300">戻る</button><button onclick="validateAndNavigate('shiori')" class="flex-[2] py-4 bg-gradient-brand text-white font-bold text-xl rounded-xl shadow-xl hover:opacity-90">旅のしおりを作成 ✨</button></div>`;
+            el.innerHTML = h;
+            currentPlan.segments.forEach((seg, i) => { if(seg.mockRoutes.length>0) drawMap(i, seg.selectedRoute); });
+        }
+        
+        function renderSummaryPage() {
+            if(!calculateAllSchedule()) {
+                showAlert('スケジュール計算エラー: 基点日時または地点情報が不正です。', 'error');
+                return navigate('input');
+            }
+            let list = []; let c=1;
+            const baseDate = new Date(currentPlan.baseDateTime).toLocaleDateString('ja-JP', {year:'numeric', month:'long', day:'numeric'});
+
+            currentPlan.stops.forEach((s, i) => {
+                const isLast = i===currentPlan.stops.length-1;
+                if(i===0) {
+                    const gatherTime = addMinutes(s.departureTime, -currentPlan.gatheringMinutes);
+                    list.push({ type:'point', idx:c++, time:formatTime(gatherTime), title:`${s.name} 集合`, sub:'', highlight:true });
+                    list.push({ type:'point', idx:c++, time:formatTime(s.departureTime), title:`${s.name} 出発`, sub:'', highlight:false });
+                } else {
+                    list.push({ type:'point', idx:c++, time:formatTime(s.arrivalTime), title:`${s.name} 到着`, sub:'', highlight:true });
+                    if(!isLast) {
+                        const reasonTitle = s.stayReason || '滞在';
+                        const stayInfo = `<span class="text-lg font-bold text-gray-800">${reasonTitle}</span> <span class="text-sm font-bold text-gray-500 ml-2">滞在 ${s.stayMinutes}分</span>`;
+                        const memoHtml = s.memo ? `<div class="mt-1 text-sm text-gray-600">${s.memo}</div>` : '';
+                        list.push({ type:'stay', idx:c++, time:'', titleHtml: stayInfo, sub:memoHtml, highlight:false });
+                        list.push({ type:'point', idx:c++, time:formatTime(s.departureTime), title:`${s.name} 出発`, sub:'', highlight:false });
+                    }
+                }
+                if(!isLast) {
+                    const seg = currentPlan.segments[i];
+                    const r = seg.mockRoutes.find(x=>x.id===seg.selectedRoute) || {durationMinutes:30, roads:[]};
+                    let roadHtml = '';
+                    if(r.roads.length > 0) {
+                        roadHtml = `<div class="mt-1 text-xs text-gray-500 font-bold">有料区間あり</div>`;
+                        r.roads.forEach((name, idx) => { roadHtml += `<div class="text-xs text-gray-600 ml-1">${['①','②','③'][idx]||'・'} ${name}</div>`; });
+                    }
+                    const navUrl = `https://www.google.com/maps/dir/${encodeURIComponent(currentPlan.stops[i].location)}/${encodeURIComponent(currentPlan.stops[i+1].location)}/data=${seg.travelMode==='DRIVING'?'!4m2!4m1!3e0!3e1':''}`; 
+                    list.push({ type: 'move', idx: c++, time: `<span class="text-xs text-gray-400">${r.durationMinutes}分</span>`, title: `${getModeLabel(seg.travelMode)}移動`, sub: `${roadHtml} <div class="mt-2"><a href="${navUrl}" target="_blank" class="no-print inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-blue-100">🧭 Google Mapsで開く</a></div>` });
+                }
+            });
+            const rows = list.map(item => {
+                const dotClass = item.type==='point' && item.highlight ? 'bg-indigo-600 text-white shadow-lg scale-110' : 'bg-white border-2 border-indigo-200 text-indigo-600';
+                let timeClass = "w-16 flex-shrink-0 text-right mr-4 font-bold text-lg text-indigo-900";
+                if(item.type==='stay' || item.type==='move') timeClass = "w-16 flex-shrink-0 text-right mr-4 text-sm pt-1";
+                const titleHtml = item.titleHtml ? item.titleHtml : `<div class="font-bold text-lg text-gray-800">${item.title}</div>`;
+                return `<div class="timeline-item flex mb-6 relative pl-6"><div class="timeline-line"></div><div class="timeline-dot ${dotClass} shadow-sm">${item.type==='point' ? '📍' : item.type==='move' ? '🚗' : '⏳'}</div><div class="ml-8 flex-1"><div class="flex flex-row items-baseline"><div class="${timeClass}">${item.time}</div><div class="flex-1">${titleHtml}<div class="mt-1">${item.sub}</div></div></div></div></div>`;
+            }).join('');
+            document.getElementById('app-content').innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 max-w-3xl mx-auto print:shadow-none print:border-none"><div class="text-center mb-10 border-b pb-6"><div class="text-sm font-bold text-gray-400 mb-1">旅のしおり（${baseDate}）</div><h2 class="text-3xl font-extrabold text-indigo-900 mb-2">${currentPlan.planName}</h2><div class="text-gray-500 text-sm">作成日: ${new Date().toLocaleDateString()}</div></div><div class="timeline-container">${rows}</div><div class="mt-10 pt-6 border-t border-gray-200 page-break-inside-avoid"><h3 class="font-bold text-gray-700 mb-4 text-center">🗺️ 全行程ルートマップ</h3><div id="full-map-area" class="w-full h-80 bg-gray-100 rounded-xl shadow-inner print:h-96"></div></div></div><div class="mt-8 flex justify-center gap-4 no-print"><button onclick="validateAndNavigate('selection')" class="bg-gray-500 text-white px-8 py-3 rounded-full font-bold shadow hover:bg-gray-600">修正する</button> <button onclick="window.print()" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-indigo-700">印刷 / PDF保存 🖨️</button></div>`;
+            setTimeout(initFullMap, 500);
+        }
+
+        // --- 5. 地図描画・計算ヘルパー ---
         function initFullMap() {
             const div = document.getElementById('full-map-area'); if(!div) return;
-            const map = new google.maps.Map(div, {zoom: 9, center: {lat:35.681, lng:139.767}, disableDefaultUI: true});
-            const renderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: false, polylineOptions:{strokeColor:'#F57C00', strokeWeight:4} });
-            const pts = editingPlan.stops.slice(2).filter(s => s.type === 'STOP').map(s => ({ location: s.location, stopover: true }));
-            if(pts.length < 2) return;
-            new google.maps.DirectionsService().route({ origin: pts[0].location, destination: pts[pts.length-1].location, waypoints: pts.slice(1, pts.length-1), travelMode: 'DRIVING' }, (res, status) => { if(status==='OK') renderer.setDirections(res); });
+            const map = new google.maps.Map(div, {zoom: 8, center: {lat:35.681, lng:139.767}, disableDefaultUI: true});
+            const renderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: false, polylineOptions:{strokeColor:'#4f46e5', strokeWeight:4} });
+            const waypoints = currentPlan.stops.slice(1, currentPlan.stops.length-1).map(s => ({ location: s.location, stopover: true }));
+            new google.maps.DirectionsService().route({ origin: currentPlan.stops[0].location, destination: currentPlan.stops[currentPlan.stops.length-1].location, waypoints: waypoints, travelMode: 'DRIVING' }, (res, status) => { if(status==='OK') renderer.setDirections(res); });
         }
-        function updateDatalist() { const l=document.getElementById('saved-locations-list'); if(l) l.innerHTML=savedLocations.map(x=>`<option value="${x}">`).join(''); }
-        function goHome() { if(mode==='EDIT' && !confirm('破棄しますか？')) return; renderDashboard(); }
-        function saveCurrentPlan() { editingPlan.updatedAt = new Date().toISOString(); const idx = savedPlans.findIndex(p => p.id === editingPlan.id); if(idx >= 0) savedPlans[idx] = editingPlan; else savedPlans.unshift(editingPlan); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); alert('保存しました'); renderDashboard(); }
-        function deletePlan(i) { if(!confirm('削除しますか？')) return; savedPlans.splice(i, 1); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); renderDashboard(); }
-        function openPlan(i) { editingPlan = savedPlans[i]; mode = 'RESULT'; renderTimeline(); }
-        function checkUrlImport() { const p = new URLSearchParams(location.search); const d = p.get('d'); if(d) { try { const json = LZString.decompressFromEncodedURIComponent(d); if(json) { const plan = JSON.parse(json); plan.id = 'import_'+Date.now(); savedPlans.unshift(plan); localStorage.setItem('savedPlans_v2', JSON.stringify(savedPlans)); history.replaceState(null, '', location.pathname); } } catch(e){} } }
-        function sharePlan(i) { const plan = savedPlans[i]; const cleanPlan = JSON.parse(JSON.stringify(plan)); cleanPlan.stops.forEach(s => { delete s.arrTime; delete s.depTime; }); const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(cleanPlan)); const url = `${location.origin}${location.pathname}?d=${compressed}`; if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>alert('共有URLをコピーしました')); else prompt('URLをコピー:', url); }
+        function drawMap(index, routeId) {
+            const div = document.getElementById(`map-area-${index}`); if(!div) return; div.innerHTML = '';
+            const seg = currentPlan.segments[index]; const rData = seg.mockRoutes.find(r=>r.id===routeId); if(!rData) return;
+            const map = new google.maps.Map(div, { zoom: 10, center: {lat:35.681, lng:139.767}, disableDefaultUI:true });
+            const polyOpts = { strokeColor: '#4f46e5', strokeWeight: 5, strokeOpacity: seg.travelMode === 'WALKING' ? 0 : 1.0, icons: seg.travelMode === 'WALKING' ? [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 4 }, offset: '0', repeat: '20px' }] : undefined };
+            const renderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers:false, polylineOptions: polyOpts });
+            new google.maps.DirectionsService().route({ origin: currentPlan.stops[index].location, destination: currentPlan.stops[index+1].location, travelMode: seg.travelMode, provideRouteAlternatives: true }, (res, status) => { if(status==='OK') { const target = res.routes.find(r => r.overview_path.length === rData.overview_path.length) || res.routes[0]; renderer.setDirections({routes:[target], request:res.request}); } });
+        }
+        function calculateAllSchedule() {
+            const baseIdx = currentPlan.stops.findIndex(s=>s.isBaseTime); if(baseIdx===-1) return false;
+            const roundUnit = currentPlan.roundingMinutes || 0; let t = currentPlan.baseDateTime;
+            for(let i=baseIdx; i<currentPlan.stops.length; i++){ currentPlan.stops[i].arrivalTime = t; const dep = addMinutes(t, currentPlan.stops[i].stayMinutes); currentPlan.stops[i].departureTime = ceilTime(dep, roundUnit); if(i < currentPlan.segments.length) { const seg=currentPlan.segments[i], r=seg.mockRoutes.find(x=>x.id===seg.selectedRoute); t = addMinutes(currentPlan.stops[i].departureTime, r?r.durationMinutes:30); } }
+            t = currentPlan.stops[baseIdx].arrivalTime; for(let i=baseIdx-1; i>=0; i--){ const seg=currentPlan.segments[i], r=seg.mockRoutes.find(x=>x.id===seg.selectedRoute); const dur = r?r.durationMinutes:30; const rawDep = addMinutes(currentPlan.stops[i+1].arrivalTime, -dur); currentPlan.stops[i].departureTime = floorTime(rawDep, roundUnit); currentPlan.stops[i].arrivalTime = addMinutes(currentPlan.stops[i].departureTime, -currentPlan.stops[i].stayMinutes); } return true;
+        }
+
+        // --- 6. ヘルパー関数 ---
+        function updateName(i, v) { currentPlan.stops[i].name = v; currentPlan.stops[i].location=''; saveState(); } 
+        function updateRounding(v) { currentPlan.roundingMinutes = parseInt(v); saveState(); }
+        function selectRoute(i, rid) { currentPlan.segments[i].selectedRoute = rid; saveState(); renderSelectionPage(); }
+        function moveStop(i, dir) { if(dir===-1&&i===0)return; if(dir===1&&i===currentPlan.stops.length-1)return; const t=currentPlan.stops[i]; currentPlan.stops[i]=currentPlan.stops[i+dir]; currentPlan.stops[i+dir]=t; currentPlan.segments=[]; saveState(); renderInputPage(); }
+        function addStop(){ currentPlan.stops.splice(currentPlan.stops.length-1,0,{id:'s'+Date.now(), name:'', location:'', stayMinutes:30}); saveState(); renderInputPage(); }
+        function removeStop(i){ currentPlan.stops.splice(i,1); currentPlan.segments.splice(i,1); saveState(); renderInputPage(); }
+        function setBase(i){ currentPlan.stops.forEach(s=>s.isBaseTime=false); currentPlan.stops[i].isBaseTime=true; saveState(); renderInputPage(); }
+        function changeMode(i,m){ currentPlan.segments[i].travelMode=m; saveState(); renderInputPage(); }
+        function saveLoc(id){ const s=currentPlan.stops.find(s=>s.id===id); if(s.name){ savedLocations.push(s.name); saveAllPlans(); updateDatalist(); showAlert('保存しました','success'); } }
+        function removeSavedLocation(i) { savedLocations.splice(i, 1); saveAllPlans(); updateDatalist(); renderDashboard(); }
+        function updateDatalist(){ const l=document.getElementById('saved-locations-list'); if(l) l.innerHTML=savedLocations.map(x=>`<option value="${x}">`).join(''); }
+        function clearData(){ if(confirm('全データを初期化しますか？')) { localStorage.removeItem('planList'); localStorage.removeItem('itineraryState'); location.reload(); } }
+        function showAlert(m,t){ const c=document.getElementById('message-container'); c.innerHTML=`<div class="px-4 py-2 text-white rounded shadow ${t==='error'?'bg-red-500':'bg-indigo-600'}">${m}</div>`; setTimeout(()=>c.innerHTML='',5000); }
+
     </script>
 </body>
 </html>
