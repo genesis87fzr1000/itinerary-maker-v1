@@ -145,7 +145,7 @@
                         </g>
                     </g>
                 </svg>
-                <span class="hidden sm:inline-block text-[10px] bg-orange-500 px-1.5 py-0.5 rounded self-end mb-1">v5.4.2</span>
+                <span class="hidden sm:inline-block text-[10px] bg-orange-500 px-1.5 py-0.5 rounded self-end mb-1">v5.4.1</span>
             </div>
             
             <button onclick="goHome()" class="flex flex-col items-center justify-center text-white hover:opacity-80 transition-opacity flex-shrink-0 ml-2">
@@ -314,7 +314,7 @@
         // Assistant Navigation 風 (矢印)
         const SVG_NAV_ARROW = `<svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>`;
 
-        const APP_VERSION = '5.4.1.12.4';
+        const APP_VERSION = '5.4.1.12.5';
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
         let savedLocations = JSON.parse(localStorage.getItem('savedLocations_v2')) || [];
@@ -418,7 +418,6 @@
                             nameHtml = `<span onclick="openLocationModal(${i})" class="${cls} text-input-small" style="${nameStyle}">${val}</span>`;
                         }
                     } else {
-                        // 地点・マップボタン（Location Onアイコンのみ、オレンジ）
                         const q = encodeURIComponent(item.location || item.name);
                         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
                         nameHtml = `<span class="font-bold" style="color:#f97316;">${item.name}</span><a href="${mapUrl}" target="_blank" class="no-print btn-map-stop" title="Googleマップで開く">${SVG_MAP_PIN}</a>`;
@@ -434,10 +433,11 @@
 
                     html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
 
-                    if (!isFirst && !isStart && !isLast) {
+                    // --- 修正箇所: !isFirst の場合（集合以外）、基点設定用の UI を表示するように変更 ---
+                    if (!isFirst) {
                         let stayHtml = '';
                         if (isEdit) {
-                            const rVal = item.stayReason || '<span class="input-guide">滞在理由</span>入力';
+                            const rVal = item.stayReason || ( (isStart || isLast) ? '基点設定' : '<span class="input-guide">滞在理由</span>入力');
                             const rCls = item.stayReason ? 'filled filled-orange' : 'text-orange-300';
                             const tVal = item.stayTime || '00';
                             const mVal = item.memo || 'メモ入力';
@@ -446,19 +446,21 @@
                             stayHtml = `
                                 <div class="flex items-center gap-2 text-sm text-orange-500 mt-1">
                                     ${SVG_STAY}
-                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small">${rVal}</span> 滞在 
-                                    <span onclick="openStayModal(${i})" class="input-hole filled text-center filled-orange" style="min-width:30px">${tVal}</span> 分
+                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small">${rVal}</span>
+                                    ${(!isStart && !isLast) ? ` 滞在 <span onclick="openStayModal(${i})" class="input-hole filled text-center filled-orange" style="min-width:30px">${tVal}</span> 分` : ''}
                                     <span onclick="openMemoModal(${i})" class="flex items-center gap-1 input-hole ${mCls} text-xs ml-2">${SVG_MEMO} ${mVal}</span>
                                 </div>`;
                         } else {
-                            if (item.stayReason || item.stayTime > 0) {
-                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center">${SVG_STAY}</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} <span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span></div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5 flex items-center gap-1">${SVG_MEMO} ${item.memo}</div>` : ''}</div></div>`;
+                            if (item.stayReason || item.stayTime > 0 || item.memo) {
+                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center">${SVG_STAY}</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} ${item.stayTime > 0 ? `<span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span>` : ''}</div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5 flex items-center gap-1">${SVG_MEMO} ${item.memo}</div>` : ''}</div></div>`;
                             }
                         }
                         if (stayHtml) html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
 
-                        const depTime = item.depTimeStr || '00:00'; 
-                        html += `<div class="timeline-item timeline-container pb-3 min-h-[30px]"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot border-orange-300 text-orange-300">●</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${depTime}</div><div class="flex-grow text-sm"><span class="${isEdit?'text-orange-300':'font-bold'}" style="${isEdit?'':'color:#f97316;'}">${item.name||'地点名'}</span> <span class="font-bold text-orange-500">出発</span></div></div></div>`;
+                        if (!isLast) {
+                            const depTime = item.depTimeStr || '00:00'; 
+                            html += `<div class="timeline-item timeline-container pb-3 min-h-[30px]"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot border-orange-300 text-orange-300">●</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${depTime}</div><div class="flex-grow text-sm"><span class="${isEdit?'text-orange-300':'font-bold'}" style="${isEdit?'':'color:#f97316;'}">${item.name||'地点名'}</span> <span class="font-bold text-orange-500">出発</span></div></div></div>`;
+                        }
                     }
                 } else if (item.type === 'MOVE') {
                     if (item.mode === 'WAIT') return;
@@ -477,7 +479,6 @@
                             <span class="text-orange-400">移動 ${dur} ${item.trafficBuffer > 0 ? `<span class="text-[10px] text-orange-500 font-bold ml-1">+${item.trafficBuffer}m</span>` : ''}</span>
                         </div>`;
                     } else {
-                        // ナビボタン（Assistant Navigationアイコン、オレンジテキスト、薄いオレンジ枠）
                         const startLoc = plan.stops[i-1].location || plan.stops[i-1].name;
                         const endLoc = plan.stops[i+1].location || plan.stops[i+1].name;
                         let gMode = (item.mode === 'WALKING') ? 'walking' : (item.mode === 'BICYCLING' ? 'bicycling' : 'driving');
@@ -516,9 +517,6 @@
             if(!isEdit) setTimeout(initFullMap, 800); 
         }
 
-        /**
-         * カスタムセレクトボックスの開閉切り替え
-         */
         function toggleCustomSelect() {
             const options = document.getElementById('custom-options');
             options.classList.toggle('hidden');
@@ -562,18 +560,16 @@
         function openTransportModal(idx) { editingIndex = idx; const item = editingPlan.stops[idx]; document.getElementById('input-transport').value = item.mode; document.getElementById('input-traffic-buffer').value = item.trafficBuffer || 0; openModal('modal-transport'); }
         function confirmTransport() { const item = editingPlan.stops[editingIndex]; item.mode = document.getElementById('input-transport').value; item.trafficBuffer = parseInt(document.getElementById('input-traffic-buffer').value); closeModal('modal-transport'); renderTimeline(); }
         
-        // --- 修正: モーダルを開くとき、保存された基点時刻を読み込む ---
         function openStayModal(idx) { 
             editingIndex = idx; 
             const item = editingPlan.stops[idx]; 
             document.getElementById('input-stay-reason').value = item.stayReason; 
             document.getElementById('input-stay-time').value = item.stayTime; 
             document.getElementById('input-is-base').checked = item.isBase; 
-            document.getElementById('input-base-clock').value = item.baseClock || "12:00"; // 追加
+            document.getElementById('input-base-clock').value = item.baseClock || "12:00";
             openModal('modal-stay'); 
         }
         
-        // --- 修正: 確定時、基点時刻を保存する ---
         function confirmStay() { 
             const item = editingPlan.stops[editingIndex]; 
             item.stayReason = document.getElementById('input-stay-reason').value; 
@@ -581,7 +577,7 @@
             if(document.getElementById('input-is-base').checked) { 
                 editingPlan.stops.forEach(s => { if(s.type==='STOP') s.isBase = false; }); 
                 item.isBase = true; 
-                item.baseClock = document.getElementById('input-base-clock').value; // 追加
+                item.baseClock = document.getElementById('input-base-clock').value; 
             } else { 
                 item.isBase = false; 
             } 
@@ -595,7 +591,6 @@
         function openFinalizeModal() { 
             if(editingPlan.stops.filter(s => s.type==='STOP' && !s.confirmed && s.name !== '（出発地と同じ）').length > 0) { alert('未確定の地点があります'); return; } 
             if(!editingPlan.stops.some(s => s.type==='STOP' && s.isBase)) { alert('時間の基点（★）が設定されていません'); return; } 
-            // 旅行日の初期値設定
             const d = new Date(); d.setDate(d.getDate()+1);
             document.getElementById('final-base-date').value = d.toISOString().split('T')[0];
             openModal('modal-finalize'); 
@@ -603,7 +598,6 @@
 
         async function executeCalculation() {
             editingPlan.name = document.getElementById('final-plan-name').value; 
-            // final-base-dateをbaseTime(ISO)に変換して保存（計算で日付が必要なため）
             editingPlan.baseTime = document.getElementById('final-base-date').value + "T12:00"; 
             closeModal('modal-finalize');
             document.getElementById('app-content').innerHTML = '<div class="text-center p-20"><div class="text-3xl animate-bounce">🚗</div><div class="mt-4 font-bold text-orange-400">ルート計算中...</div></div>';
@@ -626,22 +620,19 @@
             calculateSchedule(); mode = 'RESULT'; renderTimeline();
         }
 
-        // --- 修正: 基点地点の baseClock を基準に、前後を逆算・順算するロジック ---
         function calculateSchedule() {
             const stops = editingPlan.stops; 
             const baseIdx = stops.findIndex(s => s.type==='STOP' && s.isBase); 
             const addMin = (d, m) => new Date(d.getTime() + m*60000); 
             const fmt = (d) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
             
-            // 1. 基点地点の時間を設定
-            let baseDateStr = editingPlan.baseTime.split('T')[0]; // 旅行日を取得
-            let baseClockStr = stops[baseIdx].baseClock || "12:00"; // 設定された基点時刻を取得
+            let baseDateStr = editingPlan.baseTime.split('T')[0]; 
+            let baseClockStr = stops[baseIdx].baseClock || "12:00"; 
             let t = new Date(`${baseDateStr}T${baseClockStr}`);
             
             stops[baseIdx].arrTime = t; 
             stops[baseIdx].depTime = addMin(t, stops[baseIdx].stayTime);
             
-            // 2. 基点から後ろを計算 (順算)
             for(let i=baseIdx+1; i<stops.length; i++) { 
                 if(stops[i].type === 'STOP') { 
                     stops[i].arrTime = addMin(stops[i-2].depTime, stops[i-1].duration || 0); 
@@ -649,7 +640,6 @@
                 } 
             }
             
-            // 3. 基点から前を計算 (逆算)
             for(let i=baseIdx-1; i>=0; i--) { 
                 if(stops[i].type === 'STOP') { 
                     stops[i].depTime = (stops[i+1].mode === 'WAIT') ? stops[i+2].arrTime : addMin(stops[i+2].arrTime, -(stops[i+1].duration||0)); 
