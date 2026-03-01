@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1.12.5</title>
+    <title>旅のしおりメーカー v5.4.1.12.7</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -437,7 +437,11 @@
                         let stayHtml = '';
                         if (isEdit) {
                             // 出発・到着時は滞在理由を表示せず「基点設定」として扱う
-                            const rVal = item.stayReason || ( (isStart || isLast) ? '基点設定' : '<span class="input-guide">滞在理由</span>入力');
+                            let rVal = item.stayReason || ( (isStart || isLast) ? '基点設定' : '<span class="input-guide">滞在理由</span>入力');
+                            let rStyle = "";
+                            if (isStart) { rVal = '出発を基点'; rStyle = 'color: #fdba74 !important;'; }
+                            else if (isLast) { rVal = '到着を基点'; rStyle = 'color: #fdba74 !important;'; }
+
                             const rCls = (item.stayReason || isStart || isLast) ? 'filled filled-orange' : 'text-orange-300';
                             const tVal = item.stayTime || '00';
                             const mVal = item.memo || 'メモ入力';
@@ -445,10 +449,10 @@
                             
                             stayHtml = `
                                 <div class="flex items-center gap-2 text-sm text-orange-500 mt-1">
-                                    ${(isStart || isLast) ? '★' : SVG_STAY}
-                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small">${rVal}</span>
+                                    ${(isStart || isLast) ? `<span style="${rStyle}">★</span>` : SVG_STAY}
+                                    <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small" style="${rStyle}">${rVal}</span>
                                     ${(!isStart && !isLast) ? ` 滞在 <span onclick="openStayModal(${i})" class="input-hole filled text-center filled-orange" style="min-width:30px">${tVal}</span> 分` : ''}
-                                    <span onclick="openMemoModal(${i})" class="flex items-center gap-1 input-hole ${mCls} text-xs ml-2">${SVG_MEMO} ${mVal}</span>
+                                    ${(!isStart && !isLast) ? `<span onclick="openMemoModal(${i})" class="flex items-center gap-1 input-hole ${mCls} text-xs ml-2">${SVG_MEMO} ${mVal}</span>` : ''}
                                 </div>`;
                         } else {
                             if (item.stayReason || item.stayTime > 0 || item.memo) {
