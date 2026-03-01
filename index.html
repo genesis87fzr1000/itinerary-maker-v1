@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1.12.6</title>
+    <title>旅のしおりメーカー v5.4.1.12.5</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -245,19 +245,21 @@
     <div id="modal-stay" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
-                <span id="icon-stay-title"></span> 滞在・基点設定
+                <span id="icon-stay-title"></span> <span id="stay-modal-title-text">滞在・基点設定</span>
             </h3>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400"><span class="input-guide">滞在理由</span></label>
-                <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 昼食">
-            </div>
-            <div class="mb-3">
-                <label class="block text-xs font-bold text-orange-400">滞在時間</label>
-                <select id="input-stay-time" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
-                    <option value="0">0分 (通過)</option>
-                    <option value="10">10分</option><option value="20">20分</option><option value="30">30分</option>
-                    <option value="40">40分</option><option value="60">60分</option><option value="90">90分</option><option value="120">2時間</option>
-                </select>
+            <div id="stay-inputs-group">
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-orange-400"><span class="input-guide">滞在理由</span></label>
+                    <input type="text" id="input-stay-reason" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;" placeholder="例: 昼食">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-orange-400">滞在時間</label>
+                    <select id="input-stay-time" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
+                        <option value="0">0分 (通過)</option>
+                        <option value="10">10分</option><option value="20">20分</option><option value="30">30分</option>
+                        <option value="40">40分</option><option value="60">60分</option><option value="90">90分</option><option value="120">2時間</option>
+                    </select>
+                </div>
             </div>
             <div class="mb-4 bg-orange-50 p-3 rounded border border-orange-200">
                 <label class="flex items-center gap-2 cursor-pointer mb-2">
@@ -309,9 +311,7 @@
         const SVG_MEMO = `<svg class="icon-svg" viewBox="0 0 51 49" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
         const SVG_STAY = `<svg class="icon-svg icon-svg-large" viewBox="0 0 49 74" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
 
-        // Location On 風 (ピン)
         const SVG_MAP_PIN = `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
-        // Assistant Navigation 風 (矢印)
         const SVG_NAV_ARROW = `<svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>`;
 
         const APP_VERSION = '5.4.1.12.5';
@@ -401,7 +401,8 @@
                 const isFirst = i === 0; const isStart = i === 2; const isLast = i === plan.stops.length - 1;
                 
                 if (item.type === 'STOP') {
-                    const timeDisp = item.timeStr || '00:00';
+                    // 出発地点(index 2)の場合は、到着ではなく出発時間をメインに表示する
+                    const timeDisp = isStart ? (item.depTimeStr || '00:00') : (item.timeStr || '00:00');
                     let suffix = isFirst ? '集合' : (isStart ? '出発' : '到着');
                     const dotClass = item.isBase ? 'border-orange-600 text-orange-600' : 'border-orange-300 text-orange-300';
                     const dotIcon = item.isBase ? '★' : '●';
@@ -414,7 +415,6 @@
                             const val = item.name || '<span class="place-name input-guide">地点・施設名の入力</span>';
                             const cls = item.name ? 'input-hole filled' : 'input-hole text-orange-300';
                             const nameStyle = "display:inline-block; max-width:10em; line-height:1.1; word-break:break-all; text-align:left; margin-left:0; margin-right:auto;";
-
                             nameHtml = `<span onclick="openLocationModal(${i})" class="${cls} text-input-small" style="${nameStyle}">${val}</span>`;
                         }
                     } else {
@@ -433,31 +433,32 @@
 
                     html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
 
-                    // --- 修正箇所: !isFirst の場合（集合以外）、基点設定用の UI を表示するように変更 ---
                     if (!isFirst) {
                         let stayHtml = '';
                         if (isEdit) {
+                            // 出発・到着時は滞在理由を表示せず「基点設定」として扱う
                             const rVal = item.stayReason || ( (isStart || isLast) ? '基点設定' : '<span class="input-guide">滞在理由</span>入力');
-                            const rCls = item.stayReason ? 'filled filled-orange' : 'text-orange-300';
+                            const rCls = (item.stayReason || isStart || isLast) ? 'filled filled-orange' : 'text-orange-300';
                             const tVal = item.stayTime || '00';
                             const mVal = item.memo || 'メモ入力';
                             const mCls = item.memo ? 'filled filled-orange' : 'text-orange-300';
                             
                             stayHtml = `
                                 <div class="flex items-center gap-2 text-sm text-orange-500 mt-1">
-                                    ${SVG_STAY}
+                                    ${(isStart || isLast) ? '★' : SVG_STAY}
                                     <span onclick="openStayModal(${i})" class="input-hole ${rCls} text-input-small">${rVal}</span>
                                     ${(!isStart && !isLast) ? ` 滞在 <span onclick="openStayModal(${i})" class="input-hole filled text-center filled-orange" style="min-width:30px">${tVal}</span> 分` : ''}
                                     <span onclick="openMemoModal(${i})" class="flex items-center gap-1 input-hole ${mCls} text-xs ml-2">${SVG_MEMO} ${mVal}</span>
                                 </div>`;
                         } else {
                             if (item.stayReason || item.stayTime > 0 || item.memo) {
-                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center">${SVG_STAY}</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} ${item.stayTime > 0 ? `<span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span>` : ''}</div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5 flex items-center gap-1">${SVG_MEMO} ${item.memo}</div>` : ''}</div></div>`;
+                                stayHtml = `<div class="flex gap-2 mt-1"><div class="w-10 flex-shrink-0 text-center">${(isStart||isLast)?'★':SVG_STAY}</div><div><div class="text-sm font-bold" style="color:#f97316;">${item.stayReason} ${item.stayTime > 0 ? `<span class="text-orange-500 font-normal ml-2">滞在 ${item.stayTime}分</span>` : ''}</div>${item.memo ? `<div class="text-xs text-orange-400 mt-0.5 flex items-center gap-1">${SVG_MEMO} ${item.memo}</div>` : ''}</div></div>`;
                             }
                         }
                         if (stayHtml) html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
 
-                        if (!isLast) {
+                        // --- 修正: !isStart の条件を追加。最初の出発地点での「出発」行の二重表示を防ぐ ---
+                        if (!isLast && !isStart) {
                             const depTime = item.depTimeStr || '00:00'; 
                             html += `<div class="timeline-item timeline-container pb-3 min-h-[30px]"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot border-orange-300 text-orange-300">●</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${depTime}</div><div class="flex-grow text-sm"><span class="${isEdit?'text-orange-300':'font-bold'}" style="${isEdit?'':'color:#f97316;'}">${item.name||'地点名'}</span> <span class="font-bold text-orange-500">出発</span></div></div></div>`;
                         }
@@ -540,7 +541,6 @@
             }
         });
 
-        // --- ロジック関数 ---
         function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
         function copySampleToEdit() {
             const sample = getSampleData();
@@ -563,6 +563,24 @@
         function openStayModal(idx) { 
             editingIndex = idx; 
             const item = editingPlan.stops[idx]; 
+            const isStart = (idx === 2);
+            const isLast = (idx === editingPlan.stops.length - 1);
+            
+            // --- 修正: 出発・到着地点の場合は滞在理由・時間を隠し、タイトルを変更する ---
+            const inputsGroup = document.getElementById('stay-inputs-group');
+            const titleText = document.getElementById('stay-modal-title-text');
+            const iconTitle = document.getElementById('icon-stay-title');
+
+            if (isStart || isLast) {
+                inputsGroup.style.display = 'none';
+                titleText.textContent = '基点設定（出発・到着）';
+                iconTitle.innerHTML = '★';
+            } else {
+                inputsGroup.style.display = 'block';
+                titleText.textContent = '滞在・基点設定';
+                iconTitle.innerHTML = SVG_STAY;
+            }
+
             document.getElementById('input-stay-reason').value = item.stayReason; 
             document.getElementById('input-stay-time').value = item.stayTime; 
             document.getElementById('input-is-base').checked = item.isBase; 
@@ -571,9 +589,20 @@
         }
         
         function confirmStay() { 
-            const item = editingPlan.stops[editingIndex]; 
-            item.stayReason = document.getElementById('input-stay-reason').value; 
-            item.stayTime = parseInt(document.getElementById('input-stay-time').value); 
+            const idx = editingIndex;
+            const item = editingPlan.stops[idx]; 
+            const isStart = (idx === 2);
+            const isLast = (idx === editingPlan.stops.length - 1);
+
+            // 出発・到着地点の場合は値を強制リセット
+            if (isStart || isLast) {
+                item.stayReason = "";
+                item.stayTime = 0;
+            } else {
+                item.stayReason = document.getElementById('input-stay-reason').value; 
+                item.stayTime = parseInt(document.getElementById('input-stay-time').value); 
+            }
+
             if(document.getElementById('input-is-base').checked) { 
                 editingPlan.stops.forEach(s => { if(s.type==='STOP') s.isBase = false; }); 
                 item.isBase = true; 
