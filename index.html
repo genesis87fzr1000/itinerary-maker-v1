@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1.12.8</title>
+    <title>旅のしおりメーカー v5.4.1.12.9</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -275,6 +275,31 @@
         </div>
     </div>
 
+    <div id="modal-gathering" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
+                ⏱ 集合時間の設定
+            </h3>
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-orange-400 mb-1">出発/到着時刻の何分前に集合しますか？</label>
+                <select id="input-gathering-minutes" class="w-full p-2 border border-orange-200 rounded font-bold" style="color:#f97316;">
+                    <option value="0">設定なし (同時刻)</option>
+                    <option value="5">5分前</option>
+                    <option value="10">10分前</option>
+                    <option value="15">15分前</option>
+                    <option value="20">20分前</option>
+                    <option value="30">30分前</option>
+                    <option value="45">45分前</option>
+                    <option value="60">60分前</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal('modal-gathering')" class="px-4 py-2 text-orange-400">キャンセル</button>
+                <button onclick="confirmGathering()" class="px-6 py-2 bg-orange-600 text-white font-bold rounded shadow">設定</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
@@ -341,6 +366,7 @@
             const ymd = date.toISOString().split('T')[0];
             return {
                 id: 'sample', name: '千葉のダム巡り', baseTime: `${ymd}T12:00`, rounding: 0,
+                gatheringMinutes: 20, // サンプルデータ用
                 stops: [
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'集合', memo:'', isBase:false, timeStr:'07:40' },
                     { type:'MOVE', mode:'WAIT', duration:0, dist:0 }, 
@@ -410,7 +436,12 @@
                     let nameHtml = '';
                     if (isEdit) {
                         if (isFirst) {
-                            nameHtml = `<span class="input-readonly text-orange-400 text-sm text-input-small">${item.name || '（出発地と同じ）'}</span>`;
+                            // ①「時間設定」ボタンの実装: 最初の「集合」の右横に
+                            const gMinutes = plan.gatheringMinutes || 0;
+                            nameHtml = `<span class="input-readonly text-orange-400 text-sm text-input-small">${item.name || '（出発地と同じ）'}</span>
+                                        <button onclick="openModal('modal-gathering')" class="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded border border-orange-200 font-bold hover:bg-orange-200 no-print">
+                                            ⏱ 時間設定 ${gMinutes > 0 ? `(${gMinutes}分前)` : ''}
+                                        </button>`;
                         } else {
                             const val = item.name || '<span class="place-name input-guide">地点・施設名の入力</span>';
                             const cls = item.name ? 'input-hole filled' : 'input-hole text-orange-300';
@@ -420,7 +451,12 @@
                     } else {
                         const q = encodeURIComponent(item.location || item.name);
                         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
-                        nameHtml = `<span class="font-bold" style="color:#f97316;">${item.name}</span><a href="${mapUrl}" target="_blank" class="no-print btn-map-stop" title="Googleマップで開く">${SVG_MAP_PIN}</a>`;
+                        // ③ 自動計算への統合: 結果画面に「【集合時間 00:00】」を表示
+                        let gatheringInfo = "";
+                        if (isFirst && plan.gatheringMinutes > 0) {
+                            gatheringInfo = `<div class="text-[11px] font-bold text-orange-600 mt-1">【集合時間 ${item.timeStr || '00:00'}】</div>`;
+                        }
+                        nameHtml = `<div><span class="font-bold" style="color:#f97316;">${item.name}</span><a href="${mapUrl}" target="_blank" class="no-print btn-map-stop" title="Googleマップで開く">${SVG_MAP_PIN}</a>${gatheringInfo}</div>`;
                     }
 
                     let controls = (isEdit && i > 2) ? 
@@ -431,7 +467,7 @@
                         `</div>` 
                         : '';
 
-                    html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
+                    html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${isFirst && !isEdit ? '' : timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
 
                     if (!isFirst) {
                         let stayHtml = '';
@@ -548,7 +584,17 @@
         function showSample() { editingPlan = getSampleData(); mode = 'SAMPLE'; renderTimeline(); }
         function copySampleToEdit() {
             const sample = getSampleData();
-            editingPlan = { id: 'plan_' + Date.now(), name: '新規旅程プラン', baseTime: sample.baseTime, rounding: 0, stops: sample.stops.map(s => { if (s.type === 'MOVE') return { ...s, duration: 0, roads:[], trafficBuffer: 0 }; return { ...s, name:'', location:'', confirmed:false, timeStr:'00:00', depTimeStr:'00:00' }; }) };
+            editingPlan = { 
+                id: 'plan_' + Date.now(), 
+                name: '新規旅程プラン', 
+                baseTime: sample.baseTime, 
+                rounding: 0, 
+                gatheringMinutes: 0, // 初期値
+                stops: sample.stops.map(s => { 
+                    if (s.type === 'MOVE') return { ...s, duration: 0, roads:[], trafficBuffer: 0 }; 
+                    return { ...s, name:'', location:'', confirmed:false, timeStr:'00:00', depTimeStr:'00:00' }; 
+                }) 
+            };
             editingPlan.stops[0].name = '（出発地と同じ）'; mode = 'EDIT'; renderTimeline();
         }
         function startNewEdit() { copySampleToEdit(); }
@@ -564,6 +610,13 @@
         function openTransportModal(idx) { editingIndex = idx; const item = editingPlan.stops[idx]; document.getElementById('input-transport').value = item.mode; document.getElementById('input-traffic-buffer').value = item.trafficBuffer || 0; openModal('modal-transport'); }
         function confirmTransport() { const item = editingPlan.stops[editingIndex]; item.mode = document.getElementById('input-transport').value; item.trafficBuffer = parseInt(document.getElementById('input-traffic-buffer').value); closeModal('modal-transport'); renderTimeline(); }
         
+        // ② 集合時間の確定処理
+        function confirmGathering() {
+            editingPlan.gatheringMinutes = parseInt(document.getElementById('input-gathering-minutes').value);
+            closeModal('modal-gathering');
+            renderTimeline();
+        }
+
         function openStayModal(idx) { 
             editingIndex = idx; 
             const item = editingPlan.stops[idx]; 
@@ -680,6 +733,14 @@
                 } 
             }
             
+            // ③ 自動計算への統合: 最初の集合時間（index 0）を「index 2（出発地点）」の何分前かに設定する
+            const gatheringMins = editingPlan.gatheringMinutes || 0;
+            if (stops[0] && stops[2]) {
+                // index 2 の arrTime (到着) または depTime (出発) を基準に減算
+                // 通常 index 2 は出発基点なので arrTime = depTime となっている
+                stops[0].arrTime = addMin(stops[2].arrTime, -gatheringMins);
+            }
+
             stops.forEach(s => { if(s.type==='STOP') { s.timeStr = fmt(s.arrTime); s.depTimeStr = fmt(s.depTime); } });
         }
 
