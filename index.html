@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1.12.9</title>
+    <title>旅のしおりメーカー v5.4.1.12.10</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -65,11 +65,9 @@
         .toll-tag { font-size: 70%; vertical-align: baseline; margin-left: 2px; margin-right: 2px; color: #F57C00; }
         .modal-bg { background-color: rgba(78, 38, 0, 0.5); }
 
-        /* SVGアイコン用の共通クラス */
         .icon-svg { display: inline-block; vertical-align: middle; height: 1.2em; width: auto; }
         .icon-svg-large { height: 1.5em; }
 
-        /* --- 追加デザイン: マップ・ナビボタン --- */
         .btn-map-stop {
             color: #F57C00;
             margin-left: 6px;
@@ -109,11 +107,9 @@
             #full-map-area { height: 300px !important; width: 100% !important; border: 1px solid #FFB74D !important; break-inside: avoid; }
         }
     
-        /* === DESIGN FIX (no logic changes) === */
         .timeline-line{display:none !important;}
         .timeline, .timeline-container{padding-left:0 !important;}
 
-        /* Place name wrapping */
         .place-name{word-break:break-all;max-width:15em;}
         @media (max-width:768px){.place-name{max-width:9em;}}
     </style>
@@ -328,7 +324,6 @@
     <datalist id="saved-locations-list"></datalist>
 
     <script>
-        // --- SVGアイコンの定義 ---
         const SVG_CAR_TOLL = `<svg class="icon-svg" viewBox="0 0 68 35" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
         const SVG_CAR_FREE = `<svg class="icon-svg" viewBox="0 0 67 44" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
         const SVG_WALK = `<svg class="icon-svg" viewBox="0 0 24 35" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
@@ -339,7 +334,7 @@
         const SVG_MAP_PIN = `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
         const SVG_NAV_ARROW = `<svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>`;
 
-        const APP_VERSION = '5.4.1.12.5';
+        const APP_VERSION = '5.4.1.12.8';
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
         let savedLocations = JSON.parse(localStorage.getItem('savedLocations_v2')) || [];
@@ -366,7 +361,7 @@
             const ymd = date.toISOString().split('T')[0];
             return {
                 id: 'sample', name: '千葉のダム巡り', baseTime: `${ymd}T12:00`, rounding: 0,
-                gatheringMinutes: 20, // サンプルデータ用
+                gatheringMinutes: 20,
                 stops: [
                     { type:'STOP', name:'海ほたるSA', location:'海ほたるPA', confirmed:true, stayTime:0, stayReason:'集合', memo:'', isBase:false, timeStr:'07:40' },
                     { type:'MOVE', mode:'WAIT', duration:0, dist:0 }, 
@@ -427,7 +422,6 @@
                 const isFirst = i === 0; const isStart = i === 2; const isLast = i === plan.stops.length - 1;
                 
                 if (item.type === 'STOP') {
-                    // 出発地点(index 2)の場合は、到着ではなく出発時間をメインに表示する
                     const timeDisp = isStart ? (item.depTimeStr || '00:00') : (item.timeStr || '00:00');
                     let suffix = isFirst ? '集合' : (isStart ? '出発' : '到着');
                     const dotClass = item.isBase ? 'border-orange-600 text-orange-600' : 'border-orange-300 text-orange-300';
@@ -436,7 +430,6 @@
                     let nameHtml = '';
                     if (isEdit) {
                         if (isFirst) {
-                            // ①「時間設定」ボタンの実装: 最初の「集合」の右横に
                             const gMinutes = plan.gatheringMinutes || 0;
                             nameHtml = `<span class="input-readonly text-orange-400 text-sm text-input-small">${item.name || '（出発地と同じ）'}</span>
                                         <button onclick="openModal('modal-gathering')" class="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded border border-orange-200 font-bold hover:bg-orange-200 no-print">
@@ -451,12 +444,7 @@
                     } else {
                         const q = encodeURIComponent(item.location || item.name);
                         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
-                        // ③ 自動計算への統合: 結果画面に「【集合時間 00:00】」を表示
-                        let gatheringInfo = "";
-                        if (isFirst && plan.gatheringMinutes > 0) {
-                            gatheringInfo = `<div class="text-[11px] font-bold text-orange-600 mt-1">【集合時間 ${item.timeStr || '00:00'}】</div>`;
-                        }
-                        nameHtml = `<div><span class="font-bold" style="color:#f97316;">${item.name}</span><a href="${mapUrl}" target="_blank" class="no-print btn-map-stop" title="Googleマップで開く">${SVG_MAP_PIN}</a>${gatheringInfo}</div>`;
+                        nameHtml = `<div><span class="font-bold" style="color:#f97316;">${item.name}</span><a href="${mapUrl}" target="_blank" class="no-print btn-map-stop" title="Googleマップで開く">${SVG_MAP_PIN}</a></div>`;
                     }
 
                     let controls = (isEdit && i > 2) ? 
@@ -467,12 +455,11 @@
                         `</div>` 
                         : '';
 
-                    html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${isFirst && !isEdit ? '' : timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
+                    html += `<div class="timeline-item timeline-container"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot ${dotClass}">${dotIcon}</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${timeDisp}</div><div class="flex-grow flex items-center text-sm">${nameHtml} <span class="font-bold text-orange-500 ml-1">${suffix}</span>${controls}</div></div></div>`;
 
                     if (!isFirst) {
                         let stayHtml = '';
                         if (isEdit) {
-                            // 出発・到着時は滞在理由を表示せず「基点設定」として扱う
                             let rVal = item.stayReason || ( (isStart || isLast) ? '基点設定' : '<span class="input-guide">滞在理由</span>入力');
                             let rStyle = "";
                             if (isStart) { rVal = '出発を基点'; rStyle = 'color: #fdba74 !important;'; }
@@ -497,7 +484,6 @@
                         }
                         if (stayHtml) html += `<div class="timeline-item timeline-container pb-2"><div class="timeline-line"></div><div class="pl-[36px]">${stayHtml}</div></div>`;
 
-                        // --- 修正: !isStart の条件を追加。最初の出発地点での「出発」行の二重表示を防ぐ ---
                         if (!isLast && !isStart) {
                             const depTime = item.depTimeStr || '00:00'; 
                             html += `<div class="timeline-item timeline-container pb-3 min-h-[30px]"><div class="timeline-line"></div><div class="flex items-center w-full"><div class="timeline-dot border-orange-300 text-orange-300">●</div><div class="w-16 text-right font-bold text-sm flex-shrink-0 mr-3" style="color:#f97316;">${depTime}</div><div class="flex-grow text-sm"><span class="${isEdit?'text-orange-300':'font-bold'}" style="${isEdit?'':'color:#f97316;'}">${item.name||'地点名'}</span> <span class="font-bold text-orange-500">出発</span></div></div></div>`;
@@ -589,7 +575,7 @@
                 name: '新規旅程プラン', 
                 baseTime: sample.baseTime, 
                 rounding: 0, 
-                gatheringMinutes: 0, // 初期値
+                gatheringMinutes: 0,
                 stops: sample.stops.map(s => { 
                     if (s.type === 'MOVE') return { ...s, duration: 0, roads:[], trafficBuffer: 0 }; 
                     return { ...s, name:'', location:'', confirmed:false, timeStr:'00:00', depTimeStr:'00:00' }; 
@@ -610,7 +596,6 @@
         function openTransportModal(idx) { editingIndex = idx; const item = editingPlan.stops[idx]; document.getElementById('input-transport').value = item.mode; document.getElementById('input-traffic-buffer').value = item.trafficBuffer || 0; openModal('modal-transport'); }
         function confirmTransport() { const item = editingPlan.stops[editingIndex]; item.mode = document.getElementById('input-transport').value; item.trafficBuffer = parseInt(document.getElementById('input-traffic-buffer').value); closeModal('modal-transport'); renderTimeline(); }
         
-        // ② 集合時間の確定処理
         function confirmGathering() {
             editingPlan.gatheringMinutes = parseInt(document.getElementById('input-gathering-minutes').value);
             closeModal('modal-gathering');
@@ -623,7 +608,6 @@
             const isStart = (idx === 2);
             const isLast = (idx === editingPlan.stops.length - 1);
             
-            // --- 修正: 出発・到着地点の場合は滞在理由・時間を隠し、タイトルを変更する ---
             const inputsGroup = document.getElementById('stay-inputs-group');
             const titleText = document.getElementById('stay-modal-title-text');
             const iconTitle = document.getElementById('icon-stay-title');
@@ -651,7 +635,6 @@
             const isStart = (idx === 2);
             const isLast = (idx === editingPlan.stops.length - 1);
 
-            // 出発・到着地点の場合は値を強制リセット
             if (isStart || isLast) {
                 item.stayReason = "";
                 item.stayTime = 0;
@@ -733,11 +716,8 @@
                 } 
             }
             
-            // ③ 自動計算への統合: 最初の集合時間（index 0）を「index 2（出発地点）」の何分前かに設定する
             const gatheringMins = editingPlan.gatheringMinutes || 0;
             if (stops[0] && stops[2]) {
-                // index 2 の arrTime (到着) または depTime (出発) を基準に減算
-                // 通常 index 2 は出発基点なので arrTime = depTime となっている
                 stops[0].arrTime = addMin(stops[2].arrTime, -gatheringMins);
             }
 
