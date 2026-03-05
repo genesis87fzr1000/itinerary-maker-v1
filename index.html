@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅のしおりメーカー v5.4.1.12.10</title>
+    <title>旅のしおりメーカー v5.4.1.12.9</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -296,6 +296,22 @@
         </div>
     </div>
 
+    <div id="modal-rounding" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
+                <span id="icon-round-title"></span> 時間表示の丸め設定
+            </h3>
+            <div class="space-y-3">
+                <button onclick="confirmRounding(5)" class="w-full py-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-600 font-extrabold hover:bg-orange-100 transition">5分単位に切り上げる</button>
+                <button onclick="confirmRounding(10)" class="w-full py-4 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-600 font-extrabold hover:bg-orange-100 transition">10分単位に切り上げる</button>
+                <button onclick="confirmRounding(0)" class="w-full py-3 text-orange-300 font-bold">丸めない (1分単位)</button>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeModal('modal-rounding')" class="px-4 py-2 text-orange-400">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-memo" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color:#f97316;">
@@ -330,11 +346,12 @@
         const SVG_BIKE = `<svg class="icon-svg" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
         const SVG_MEMO = `<svg class="icon-svg" viewBox="0 0 51 49" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
         const SVG_STAY = `<svg class="icon-svg icon-svg-large" viewBox="0 0 49 74" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="196" height="131" style="fill:rgb(247,247,247);"/></svg>`;
+        const SVG_SETTINGS = `<svg class="icon-svg" style="height:0.9em;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
         const SVG_MAP_PIN = `<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
         const SVG_NAV_ARROW = `<svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>`;
 
-        const APP_VERSION = '5.4.1.12.8';
+        const APP_VERSION = '5.4.1.12.9';
         let mode = 'DASHBOARD'; 
         let savedPlans = JSON.parse(localStorage.getItem('savedPlans_v2')) || [];
         let savedLocations = JSON.parse(localStorage.getItem('savedLocations_v2')) || [];
@@ -352,6 +369,7 @@
             document.getElementById('icon-stay-title').innerHTML = SVG_STAY;
             document.getElementById('icon-memo-title').innerHTML = SVG_MEMO;
             document.getElementById('icon-loc-title').innerHTML = "📍";
+            document.getElementById('icon-round-title').innerHTML = SVG_SETTINGS;
         };
 
         function triggerPrint() { window.print(); return false; }
@@ -422,6 +440,15 @@
                 const isFirst = i === 0; const isStart = i === 2; const isLast = i === plan.stops.length - 1;
                 
                 if (item.type === 'STOP') {
+                    // 丸め設定ボタンの追加 (編集モード、かつ最初の地点の前)
+                    if (isFirst && isEdit) {
+                        html += `<div class="no-print mb-4" style="margin-left: 36px;">
+                                    <button onclick="openModal('modal-rounding')" class="px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded border border-orange-200 font-bold hover:bg-orange-200 flex items-center gap-1">
+                                        ${SVG_SETTINGS} 時間表示を丸める ${plan.rounding > 0 ? `(${plan.rounding}分)` : ''}
+                                    </button>
+                                </div>`;
+                    }
+
                     const timeDisp = isStart ? (item.depTimeStr || '00:00') : (item.timeStr || '00:00');
                     let suffix = isFirst ? '集合' : (isStart ? '出発' : '到着');
                     const dotClass = item.isBase ? 'border-orange-600 text-orange-600' : 'border-orange-300 text-orange-300';
@@ -602,6 +629,12 @@
             renderTimeline();
         }
 
+        function confirmRounding(val) {
+            editingPlan.rounding = val;
+            closeModal('modal-rounding');
+            renderTimeline();
+        }
+
         function openStayModal(idx) { 
             editingIndex = idx; 
             const item = editingPlan.stops[idx]; 
@@ -692,7 +725,13 @@
         function calculateSchedule() {
             const stops = editingPlan.stops; 
             const baseIdx = stops.findIndex(s => s.type==='STOP' && s.isBase); 
+            const step = editingPlan.rounding || 0;
             const addMin = (d, m) => new Date(d.getTime() + m*60000); 
+            const roundUp = (d) => {
+                if (step <= 1) return d;
+                const ms = step * 60 * 1000;
+                return new Date(Math.ceil(d.getTime() / ms) * ms);
+            };
             const fmt = (d) => `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
             
             let baseDateStr = editingPlan.baseTime.split('T')[0]; 
@@ -700,25 +739,26 @@
             let t = new Date(`${baseDateStr}T${baseClockStr}`);
             
             stops[baseIdx].arrTime = t; 
-            stops[baseIdx].depTime = addMin(t, stops[baseIdx].stayTime);
+            stops[baseIdx].depTime = roundUp(addMin(t, stops[baseIdx].stayTime));
             
             for(let i=baseIdx+1; i<stops.length; i++) { 
                 if(stops[i].type === 'STOP') { 
-                    stops[i].arrTime = addMin(stops[i-2].depTime, stops[i-1].duration || 0); 
-                    stops[i].depTime = addMin(stops[i].arrTime, stops[i].stayTime); 
+                    stops[i].arrTime = roundUp(addMin(stops[i-2].depTime, stops[i-1].duration || 0)); 
+                    stops[i].depTime = roundUp(addMin(stops[i].arrTime, stops[i].stayTime)); 
                 } 
             }
             
             for(let i=baseIdx-1; i>=0; i--) { 
                 if(stops[i].type === 'STOP') { 
                     stops[i].depTime = (stops[i+1].mode === 'WAIT') ? stops[i+2].arrTime : addMin(stops[i+2].arrTime, -(stops[i+1].duration||0)); 
-                    stops[i].arrTime = addMin(stops[i].depTime, -stops[i].stayTime); 
+                    stops[i].depTime = roundUp(stops[i].depTime);
+                    stops[i].arrTime = roundUp(addMin(stops[i].depTime, -stops[i].stayTime)); 
                 } 
             }
             
             const gatheringMins = editingPlan.gatheringMinutes || 0;
             if (stops[0] && stops[2]) {
-                stops[0].arrTime = addMin(stops[2].arrTime, -gatheringMins);
+                stops[0].arrTime = roundUp(addMin(stops[2].arrTime, -gatheringMins));
             }
 
             stops.forEach(s => { if(s.type==='STOP') { s.timeStr = fmt(s.arrTime); s.depTimeStr = fmt(s.depTime); } });
